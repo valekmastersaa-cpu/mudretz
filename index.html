@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Мудрец</title>
+    
+    <!-- PWA: подключаем манифест -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Цвет строки состояния (для телефона) -->
+    <meta name="theme-color" content="#1e3c72">
+    
+    <!-- Иконка для закладок (старые браузеры) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
+    
+    <style>
+        /* === ОСНОВНЫЕ СТИЛИ === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+        }
+        
+        /* Шапка */
+        header {
+            padding: 20px 16px 10px;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: #ffd966;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        /* Панель выбора мудреца */
+        .sage-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.1);
+            justify-content: center;
+        }
+        .sage-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 30px;
+            padding: 10px 18px;
+            font-size: 15px;
+            color: #fff;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .sage-btn.active {
+            background: #ffd966;
+            color: #1e3c72;
+            border-color: #ffd966;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255,217,102,0.4);
+        }
+        .sage-btn:active {
+            transform: scale(0.96);
+        }
+        
+        /* Окно чата */
+        .chat-container {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(15px);
+            margin: 16px;
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            min-height: 300px;
+        }
+        .message {
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message.user {
+            align-items: flex-end;
+        }
+        .message.sage {
+            align-items: flex-start;
+        }
+        .bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .user .bubble {
+            background: #ffd966;
+            color: #1e3c72;
+            border-bottom-right-radius: 4px;
+        }
+        .sage .bubble {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .sender-label {
+            font-size: 12px;
+            margin-bottom: 4px;
+            opacity: 0.7;
+        }
+        
+        /* Ввод */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+        }
+        .input-area input {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 30px;
+            border: none;
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .input-area input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        .input-area button {
+            background: #ffd966;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            color: #1e3c72;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .input-area button:active {
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌿 Мудрец</h1>
+    </header>
+    
+    <!-- Кнопки мудрецов -->
+    <div class="sage-selector" id="sageSelector">
+        <button class="sage-btn" data-sage="islam">☪️ Мудрец Ислама</button>
+        <button class="sage-btn" data-sage="transurfing">🌀 Мудрец Трансерфинга</button>
+        <button class="sage-btn" data-sage="stoicism">🏛️ Мудрец Стоицизма</button>
+        <button class="sage-btn" data-sage="buddhism">☸️ Мудрец Буддизма</button>
+        <button class="sage-btn" data-sage="orthodoxy">✝️ Мудрец Православия</button>
+    </div>
+    
+    <!-- Чат -->
+    <div class="chat-container" id="chatContainer">
+        <!-- Сообщения будут появляться здесь -->
+    </div>
+    
+    <!-- Поле ввода -->
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Задай вопрос мудрецу..." autocomplete="off">
+        <button id="sendBtn">➤</button>
+    </div>
+    
+    <script>
+        // === ЛОГИКА ИНТЕРФЕЙСА ===
+        
+        // 1. Элементы из HTML
+        const sageButtons = document.querySelectorAll('.sage-btn');
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        // 2. Храним выбранного мудреца
+        let currentSage = 'islam'; // по умолчанию ислам
+        
+        // 3. Слушаем клики по кнопкам мудрецов
+        sageButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Убираем активный класс у всех
+                sageButtons.forEach(b => b.classList.remove('active'));
+                // Добавляем активный на ту, на которую нажали
+                btn.classList.add('active');
+                // Запоминаем мудреца
+                currentSage = btn.getAttribute('data-sage');
+                // Показываем системное сообщение о переключении
+                appendSystemMessage(`Выбран ${btn.innerText}`);
+            });
+        });
+        
+        // 4. Установим активную кнопку по умолчанию
+        document.querySelector('.sage-btn[data-sage="islam"]').classList.add('active');
+        
+        // 5. Функция добавления сообщения в чат
+        function appendMessage(text, sender, sageName = '') {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender === 'user' ? 'user' : 'sage');
+            
+            const label = document.createElement('div');
+            label.classList.add('sender-label');
+            if (sender === 'user') {
+                label.textContent = 'Вы';
+            } else {
+                label.textContent = sageName || 'Мудрец';
+            }
+            
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.textContent = text;
+            
+            messageDiv.appendChild(label);
+            messageDiv.appendChild(bubble);
+            chatContainer.appendChild(messageDiv);
+            // Прокручиваем вниз
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function appendSystemMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.style.textAlign = 'center';
+            msgDiv.style.fontSize = '13px';
+            msgDiv.style.opacity = '0.7';
+            msgDiv.style.margin = '8px 0';
+            msgDiv.textContent = text;
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // 6. Функция получения ответа мудреца (пока заглушка)
+        function getSageReply(userText, sageKey) {
+            const sageNames = {
+                islam: 'Мудрец Ислама',
+                transurfing: 'Мудрец Трансерфинга',
+                stoicism: 'Мудрец Стоицизма',
+                buddhism: 'Мудрец Буддизма',
+                orthodoxy: 'Мудрец Православия'
+            };
+            const name = sageNames[sageKey] || 'Мудрец';
+            
+            // Тренировочный ответ, который мы заменим на реальный ИИ в следующем эпизоде
+            return `${name} получил твой вопрос: «${userText}». Сейчас я ещё учусь, но скоро дам мудрый совет на основе своего учения.`;
+        }
+        
+        // 7. Обработка отправки сообщения
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (text === '') return;
+            
+            // Показать вопрос пользователя
+            appendMessage(text, 'user');
+            userInput.value = '';
+            
+            // Имитация небольшой задержки перед ответом (как будто мудрец думает)
+            setTimeout(() => {
+                const reply = getSageReply(text, currentSage);
+                const sageNames = {
+                    islam: 'Мудрец Ислама',
+                    transurfing: 'Мудрец Трансерфинга',
+                    stoicism: 'Мудрец Стоицизма',
+                    buddhism: 'Мудрец Буддизма',
+                    orthodoxy: 'Мудрец Православия'
+                };
+                appendMessage(reply, 'sage', sageNames[currentSage]);
+            }, 600);
+        }
+        
+        // 8. Привязываем события
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // 9. Регистрация Service Worker (для PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('SW зарегистрирован', reg))
+                    .catch(err => console.log('Ошибка SW', err));
+            });
+        }
+    </script>
+</body>
+</html>
