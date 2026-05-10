@@ -28,6 +28,24 @@
         .loading-dots span { display: inline-block; width: 8px; height: 8px; margin: 0 2px; background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both; }
         .loading-dots span:nth-child(2) { animation-delay: 0.2s; } .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+        /* Стили для модального окна ввода ключа */
+        .modal-overlay {
+            display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: #1e3c72; border: 1px solid #ffd966; border-radius: 20px; padding: 24px;
+            max-width: 400px; width: 90%; color: #fff; text-align: center;
+        }
+        .modal-box h2 { margin-bottom: 12px; color: #ffd966; }
+        .modal-box input {
+            width: 100%; padding: 12px; border-radius: 10px; border: none; margin-bottom: 12px;
+            font-size: 14px; background: rgba(255,255,255,0.15); color: #fff; outline: none;
+        }
+        .modal-box button {
+            background: #ffd966; border: none; padding: 10px 24px; border-radius: 20px;
+            font-size: 16px; font-weight: bold; cursor: pointer; color: #1e3c72;
+        }
     </style>
 </head>
 <body>
@@ -44,10 +62,21 @@
         <input type="text" id="userInput" placeholder="Задай вопрос мудрецу..." autocomplete="off">
         <button id="sendBtn">➤</button>
     </div>
+
+    <!-- Модальное окно ввода ключа (показывается разово) -->
+    <div class="modal-overlay" id="keyModal">
+        <div class="modal-box">
+            <h2>🔑 Введите ключ Groq API</h2>
+            <p style="font-size:13px; opacity:0.8; margin-bottom:12px;">Он сохранится только на этом устройстве и не попадёт в сеть.</p>
+            <input type="password" id="apiKeyInput" placeholder="gsk_...">
+            <br>
+            <button id="saveKeyBtn">Сохранить</button>
+        </div>
+    </div>
+
     <script>
-        // ========== ТВОЙ API-КЛЮЧ ==========
-        const DEEPSEEK_API_KEY = 'sk-ded18ed942a345b7845c2d5ee6978de2';
-        const API_URL = 'https://api.deepseek.com/v1/chat/completions';
+        const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+        const STORAGE_KEY = 'mudrets_groq_key';
 
         const sagePrompts = {
             islam: `Ты — Мудрец Ислама, глубоко знающий Коран, сунну и исламское богословие. Отвечай на вопросы пользователя, опираясь исключительно на священные тексты и труды признанных исламских учёных. В начале каждого ответа приводи уместный аят или хадис. Если вопрос касается медицины, техники или права в бытовом смысле, подчеркни, что ты не специалист, но дай наставление, связанное с верой. Тон — уважительный, спокойный, ободряющий.`,
@@ -62,6 +91,32 @@
         const userInput = document.getElementById('userInput');
         let currentSage = 'islam';
         const conversationHistory = { islam: [], transurfing: [], stoicism: [], buddhism: [], orthodoxy: [] };
+
+        // ========== БЕЗОПАСНОЕ ПОЛУЧЕНИЕ КЛЮЧА ==========
+        function getApiKey() {
+            return localStorage.getItem(STORAGE_KEY);
+        }
+
+        // Модальное окно
+        const keyModal = document.getElementById('keyModal');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveKeyBtn = document.getElementById('saveKeyBtn');
+
+        if (!getApiKey()) {
+            // Ключа нет — показываем окно
+            keyModal.style.display = 'flex';
+        } else {
+            keyModal.style.display = 'none';
+        }
+
+        saveKeyBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem(STORAGE_KEY, key);
+                keyModal.style.display = 'none';
+                appendSystemMessage('🔑 Ключ сохранён. Можете общаться с мудрецами.');
+            }
+        });
 
         function appendMessage(text, sender, sageName = '') {
             const msgDiv = document.createElement('div');
@@ -100,15 +155,31 @@
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
+
+            const key = getApiKey();
+            if (!key) {
+                keyModal.style.display = 'flex';
+                return;
+            }
+
             appendMessage(text, 'user');
             userInput.value = '';
             conversationHistory[currentSage].push({ role: 'user', content: text });
             showLoading();
+
             try {
                 const resp = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-ded18ed942a345b7845c2d5ee6978de2' },
-                    body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: sagePrompts[currentSage] }, ...conversationHistory[currentSage]], temperature: 0.8, max_tokens: 800 })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + key
+                    },
+                    body: JSON.stringify({
+                        model: 'llama3-70b-8192',
+                        messages: [{ role: 'system', content: sagePrompts[currentSage] }, ...conversationHistory[currentSage]],
+                        temperature: 0.8,
+                        max_tokens: 800
+                    })
                 });
                 const data = await resp.json();
                 removeLoading();
