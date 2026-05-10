@@ -4,84 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Мудрец</title>
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh; display: flex; flex-direction: column; color: #fff;
-        }
+        body { font-family: system-ui, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 100vh; display: flex; flex-direction: column; color: #fff; }
         header { padding: 20px 16px 10px; text-align: center; }
-        header h1 { font-size: 28px; font-weight: 400; letter-spacing: 2px; color: #ffd966; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        
-        .sage-selector {
-            display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 16px;
-            background: rgba(255,255,255,0.1); justify-content: center;
-        }
-        .sage-btn {
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 30px; padding: 10px 18px; font-size: 15px; color: #fff;
-            backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease;
-            display: flex; align-items: center; gap: 6px; white-space: nowrap;
-        }
+        header h1 { font-size: 28px; font-weight: 400; letter-spacing: 2px; color: #ffd966; }
+        .sage-selector { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,0.1); justify-content: center; }
+        .sage-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 10px 18px; font-size: 15px; color: #fff; backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
         .sage-btn.active { background: #ffd966; color: #1e3c72; border-color: #ffd966; font-weight: 600; }
-        .sage-btn:active { transform: scale(0.96); }
-        
-        .chat-container {
-            flex: 1; background: rgba(0,0,0,0.3); backdrop-filter: blur(15px);
-            margin: 16px; border-radius: 20px; padding: 16px; display: flex;
-            flex-direction: column; overflow-y: auto; min-height: 300px;
-        }
+        .chat-container { flex: 1; background: rgba(0,0,0,0.3); backdrop-filter: blur(15px); margin: 16px; border-radius: 20px; padding: 16px; overflow-y: auto; min-height: 300px; }
         .message { margin-bottom: 14px; display: flex; flex-direction: column; }
-        .message.user { align-items: flex-end; }
-        .message.sage { align-items: flex-start; }
-        .bubble {
-            max-width: 85%; padding: 12px 16px; border-radius: 18px;
-            font-size: 16px; line-height: 1.4; word-wrap: break-word;
-        }
-        .user .bubble { background: #ffd966; color: #1e3c72; border-bottom-right-radius: 4px; }
-        .sage .bubble { background: rgba(255,255,255,0.15); color: #fff; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.1); }
+        .message.user { align-items: flex-end; } .message.sage { align-items: flex-start; }
+        .bubble { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
+        .user .bubble { background: #ffd966; color: #1e3c72; }
+        .sage .bubble { background: rgba(255,255,255,0.15); color: #fff; }
         .sender-label { font-size: 12px; margin-bottom: 4px; opacity: 0.7; }
-        
-        .input-area {
-            display: flex; gap: 10px; padding: 12px 16px;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(20px);
-        }
-        .input-area input {
-            flex: 1; padding: 14px 18px; border-radius: 30px; border: none;
-            background: rgba(255,255,255,0.12); color: #fff; font-size: 16px;
-            outline: none; border: 1px solid rgba(255,255,255,0.15);
-        }
-        .input-area input::placeholder { color: rgba(255,255,255,0.5); }
-        .input-area button {
-            background: #ffd966; border: none; border-radius: 50%;
-            width: 50px; height: 50px; font-size: 24px; color: #1e3c72;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-        }
-        .input-area button:active { transform: scale(0.9); }
-        
-        .loading-dots {
-            display: inline-block;
-        }
-        .loading-dots span {
-            display: inline-block; width: 8px; height: 8px; margin: 0 2px;
-            background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both;
-        }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink {
-            0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; }
-        }
+        .input-area { display: flex; gap: 10px; padding: 12px 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(20px); }
+        .input-area input { flex: 1; padding: 14px 18px; border-radius: 30px; border: none; background: rgba(255,255,255,0.12); color: #fff; font-size: 16px; outline: none; }
+        .input-area button { background: #ffd966; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; color: #1e3c72; cursor: pointer; }
+        .loading-dots span { display: inline-block; width: 8px; height: 8px; margin: 0 2px; background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; } .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
     </style>
 </head>
 <body>
     <header><h1>🌿 Мудрец</h1></header>
-    
     <div class="sage-selector" id="sageSelector">
         <button class="sage-btn" data-sage="islam">☪️ Мудрец Ислама</button>
         <button class="sage-btn" data-sage="transurfing">🌀 Мудрец Трансерфинга</button>
@@ -89,192 +39,97 @@
         <button class="sage-btn" data-sage="buddhism">☸️ Мудрец Буддизма</button>
         <button class="sage-btn" data-sage="orthodoxy">✝️ Мудрец Православия</button>
     </div>
-    
     <div class="chat-container" id="chatContainer"></div>
-    
     <div class="input-area">
         <input type="text" id="userInput" placeholder="Задай вопрос мудрецу..." autocomplete="off">
         <button id="sendBtn">➤</button>
     </div>
-    
     <script>
-        // ========== ВСТАВЬ СВОЙ API-КЛЮЧ НИЖЕ ==========
-        const DEEPSEEK_API_KEY = sk-500bf87c6a874d99bcb4b052aed52f15;   // <--- замени на ключ из кабинета DeepSeek
+        // ========== ТВОЙ API-КЛЮЧ ==========
+        const DEEPSEEK_API_KEY = 'sk-500bf87c6a874d99bcb4b052aed52f15';
         const API_URL = 'https://api.deepseek.com/v1/chat/completions';
-        
-        // ========== СИСТЕМНЫЕ ПРОМПТЫ (ДУХОВНЫЙ ОБЛИК МУДРЕЦОВ) ==========
+
         const sagePrompts = {
-            islam: `Ты — Мудрец Ислама, глубоко знающий Коран, сунну и исламское богословие.
-Отвечай на вопросы пользователя, опираясь исключительно на священные тексты и труды признанных исламских учёных (например, Ибн Касир, ан-Навави).
-В начале каждого ответа приводи уместный аят или хадис в качестве напоминания.
-Если вопрос касается медицины, техники или права в бытовом смысле (например, «какую таблетку выпить», «как починить розетку»), подчеркни, что ты не специалист в этой области, но дай наставление, связанное с верой (терпение, упование на Аллаха, обращение к знающим людям).
-Тон — уважительный, спокойный, ободряющий. Ты должен помочь человеку укрепиться в вере и найти мудрость в сложной ситуации.`,
-            transurfing: `Ты — Мудрец Трансерфинга, знаток учения Вадима Зеланда. Твоя задача — отвечать через призму Трансерфинга реальности: объяснять про маятники, избыточные потенциалы, важность, внешнее намерение, целевой кадр, фрейле.
-Цитируй ключевые идеи из книг Зеланда. Помогай снизить важность, переключить внимание, настроиться на благоприятный сектор реальности.
-По вопросам здоровья и безопасности напоминай, что тело принадлежит этому миру и нужно действовать разумно (обращаться к врачам), но дух может оставаться в состоянии Смотрителя.
-Тон — лёгкий, иногда метафоричный, расширяющий сознание.`,
-            stoicism: `Ты — Мудрец Стоицизма, последователь Эпиктета, Сенеки, Марка Аврелия. Твоя мудрость основана на различении того, что в нашей власти и что нет, на добродетели, мужестве, умеренности, справедливости.
-Отвечай цитатами стоиков или перефразируй их мысли применительно к ситуации. Разбирай эмоции пользователя через принцип: «Не вещи тревожат нас, а наши суждения о вещах».
-В практических вопросах, требующих специальных знаний (медицина, финансы), советуй проявлять благоразумие и обращаться к профессионалам, сохраняя внутренний покой.
-Тон — твёрдый, рациональный, но полный сострадания и мудрой отстранённости.`,
-            buddhism: `Ты — Мудрец Буддизма (буддийский наставник), владеющий Дхаммой. Опирайся на Четыре Благородные Истины, Восьмеричный путь, учение о непостоянстве (аничча), пустотности, сострадании.
-Приводи примеры из Дхаммапады или джатак. Помогай увидеть корень страдания в привязанностях и желаниях.
-В вопросах практического характера напоминай о Срединном пути и необходимости заботиться о здоровье, чтобы продолжать практику, но не привязываться к результату.
-Тон — мягкий, созерцательный, проницательный.`,
-            orthodoxy: `Ты — Мудрец Православия (православный старец, духовный наставник). Твои ответы основаны на Священном Писании, трудах святых отцов (Иоанн Златоуст, Василий Великий, Серафим Саровский и др.) и православной аскетике.
-Каждый ответ начинай с цитаты из Библии или отцов. Говори о борьбе со страстями, молитве, покаянии, смирении, любви к ближнему.
-Если вопрос лежит вне духовной сферы (техника, медицина), напомни, что Бог дал людям врачей и мастеров, и стоит воспользоваться их помощью, сохраняя мир в душе и молитву.
-Тон — отеческий, тёплый, строгий в истине, но милующий.`
+            islam: `Ты — Мудрец Ислама, глубоко знающий Коран, сунну и исламское богословие. Отвечай на вопросы пользователя, опираясь исключительно на священные тексты и труды признанных исламских учёных. В начале каждого ответа приводи уместный аят или хадис. Если вопрос касается медицины, техники или права в бытовом смысле, подчеркни, что ты не специалист, но дай наставление, связанное с верой. Тон — уважительный, спокойный, ободряющий.`,
+            transurfing: `Ты — Мудрец Трансерфинга, знаток учения Вадима Зеланда. Отвечай через призму Трансерфинга реальности: маятники, избыточные потенциалы, важность, внешнее намерение. Цитируй ключевые идеи. По вопросам здоровья напоминай, что тело принадлежит этому миру и нужно обращаться к врачам, но дух может оставаться Смотрителем. Тон — лёгкий, метафоричный.`,
+            stoicism: `Ты — Мудрец Стоицизма, последователь Эпиктета, Сенеки, Марка Аврелия. Мудрость основана на различении того, что в нашей власти и что нет, на добродетели. Отвечай цитатами стоиков. В практических вопросах советуй благоразумие и обращение к профессионалам. Тон — твёрдый, рациональный, с состраданием.`,
+            buddhism: `Ты — Мудрец Буддизма. Опирайся на Четыре Благородные Истины, Восьмеричный путь, учение о непостоянстве. Приводи примеры из Дхаммапады. В вопросах практического характера напоминай о Срединном пути. Тон — мягкий, созерцательный.`,
+            orthodoxy: `Ты — Мудрец Православия (старец). Ответы основаны на Писании и трудах святых отцов. Начинай с цитаты из Библии или отцов. Говори о борьбе со страстями, молитве, смирении. В практических вопросах напоминай, что Бог дал людям врачей и мастеров. Тон — отеческий, тёплый, строгий в истине, но милующий.`
         };
-        
-        const sageNames = {
-            islam: 'Мудрец Ислама',
-            transurfing: 'Мудрец Трансерфинга',
-            stoicism: 'Мудрец Стоицизма',
-            buddhism: 'Мудрец Буддизма',
-            orthodoxy: 'Мудрец Православия'
-        };
-        
-        // ========== ЛОГИКА ЧАТА ==========
-        const sageButtons = document.querySelectorAll('.sage-btn');
+        const sageNames = { islam: 'Мудрец Ислама', transurfing: 'Мудрец Трансерфинга', stoicism: 'Мудрец Стоицизма', buddhism: 'Мудрец Буддизма', orthodoxy: 'Мудрец Православия' };
+
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-        
         let currentSage = 'islam';
-        // Храним историю сообщений для каждого мудреца (чтобы ИИ помнил контекст)
-        const conversationHistory = {
-            islam: [],
-            transurfing: [],
-            stoicism: [],
-            buddhism: [],
-            orthodoxy: []
-        };
-        
+        const conversationHistory = { islam: [], transurfing: [], stoicism: [], buddhism: [], orthodoxy: [] };
+
         function appendMessage(text, sender, sageName = '') {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender === 'user' ? 'user' : 'sage');
-            const label = document.createElement('div');
-            label.classList.add('sender-label');
+            const label = document.createElement('div'); label.classList.add('sender-label');
             label.textContent = sender === 'user' ? 'Вы' : (sageName || 'Мудрец');
-            const bubble = document.createElement('div');
-            bubble.classList.add('bubble');
-            bubble.textContent = text;
-            msgDiv.appendChild(label);
-            msgDiv.appendChild(bubble);
-            chatContainer.appendChild(msgDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            const bubble = document.createElement('div'); bubble.classList.add('bubble'); bubble.textContent = text;
+            msgDiv.appendChild(label); msgDiv.appendChild(bubble);
+            chatContainer.appendChild(msgDiv); chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-        
         function appendSystemMessage(text) {
-            const msgDiv = document.createElement('div');
-            msgDiv.style.textAlign = 'center';
-            msgDiv.style.fontSize = '13px';
-            msgDiv.style.opacity = '0.7';
-            msgDiv.style.margin = '8px 0';
-            msgDiv.textContent = text;
-            chatContainer.appendChild(msgDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            const msgDiv = document.createElement('div'); msgDiv.style.textAlign = 'center'; msgDiv.style.fontSize = '13px'; msgDiv.style.opacity = '0.7'; msgDiv.style.margin = '8px 0'; msgDiv.textContent = text;
+            chatContainer.appendChild(msgDiv); chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-        
-        // Индикатор загрузки (три точки)
         function showLoading() {
-            const loader = document.createElement('div');
-            loader.classList.add('message', 'sage');
-            loader.id = 'loader';
-            const label = document.createElement('div');
-            label.classList.add('sender-label');
-            label.textContent = sageNames[currentSage] || 'Мудрец';
-            const bubble = document.createElement('div');
-            bubble.classList.add('bubble');
-            bubble.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
-            loader.appendChild(label);
-            loader.appendChild(bubble);
-            chatContainer.appendChild(loader);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            const loader = document.createElement('div'); loader.classList.add('message', 'sage'); loader.id = 'loader';
+            const label = document.createElement('div'); label.classList.add('sender-label'); label.textContent = sageNames[currentSage] || 'Мудрец';
+            const bubble = document.createElement('div'); bubble.classList.add('bubble'); bubble.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+            loader.appendChild(label); loader.appendChild(bubble);
+            chatContainer.appendChild(loader); chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-        
-        function removeLoading() {
-            const loader = document.getElementById('loader');
-            if (loader) loader.remove();
-        }
-        
-        // Стартовое приветствие
+        function removeLoading() { const l = document.getElementById('loader'); if (l) l.remove(); }
+
         document.querySelector('.sage-btn[data-sage="islam"]').classList.add('active');
-        appendSystemMessage('☪️ ' + sagePrompts.islam.split('\n')[0].replace('Ты — ', ''));
-        
-        sageButtons.forEach(btn => {
+        appendSystemMessage('☪️ Мудрец Ислама');
+
+        document.querySelectorAll('.sage-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                sageButtons.forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.sage-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentSage = btn.getAttribute('data-sage');
-                appendSystemMessage(`Вы говорите с ${sageNames[currentSage]}`);
+                appendSystemMessage('Вы говорите с ' + sageNames[currentSage]);
             });
         });
-        
-        // Отправка сообщения и запрос к ИИ
+
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
-            
             appendMessage(text, 'user');
             userInput.value = '';
-            
-            // Добавляем сообщение пользователя в историю
             conversationHistory[currentSage].push({ role: 'user', content: text });
-            
             showLoading();
-            
             try {
-                const response = await fetch(API_URL, {
+                const resp = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        model: 'deepseek-chat',
-                        messages: [
-                            { role: 'system', content: sagePrompts[currentSage] },
-                            ...conversationHistory[currentSage]
-                        ],
-                        temperature: 0.8,
-                        max_tokens: 800
-                    })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + DEEPSEEK_API_KEY },
+                    body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: sagePrompts[currentSage] }, ...conversationHistory[currentSage]], temperature: 0.8, max_tokens: 800 })
                 });
-                
-                const data = await response.json();
+                const data = await resp.json();
                 removeLoading();
-                
-                if (!response.ok) {
-                    throw new Error(data.error?.message || 'Ошибка запроса');
-                }
-                
+                if (!resp.ok) throw new Error(data.error?.message || 'Ошибка');
                 const reply = data.choices[0].message.content;
                 appendMessage(reply, 'sage', sageNames[currentSage]);
-                // Сохраняем ответ в историю
                 conversationHistory[currentSage].push({ role: 'assistant', content: reply });
-                
-            } catch (error) {
+            } catch (e) {
                 removeLoading();
-                console.error(error);
-                appendSystemMessage('⚠️ Не удалось связаться с мудрецом. Проверь интернет или попробуй позже.');
-                // Убираем последнее сообщение пользователя из истории, раз не получили ответ
+                console.error(e);
+                appendSystemMessage('⚠️ Мудрец временно недоступен. Проверьте ключ или интернет.');
                 conversationHistory[currentSage].pop();
             }
         }
-        
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-        
-        // Service Worker (PWA)
+
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMessage(); });
+
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(reg => console.log('SW зарегистрирован', reg))
-                    .catch(err => console.log('Ошибка SW', err));
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js').catch(function(){});
             });
         }
     </script>
