@@ -5,176 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Мудрец</title>
     
-    <!-- PWA: подключаем манифест -->
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Цвет строки состояния (для телефона) -->
     <meta name="theme-color" content="#1e3c72">
-    
-    <!-- Иконка для закладок (старые браузеры) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
     
     <style>
-        /* === ОСНОВНЫЕ СТИЛИ === */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: #fff;
+            min-height: 100vh; display: flex; flex-direction: column; color: #fff;
         }
+        header { padding: 20px 16px 10px; text-align: center; }
+        header h1 { font-size: 28px; font-weight: 400; letter-spacing: 2px; color: #ffd966; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
         
-        /* Шапка */
-        header {
-            padding: 20px 16px 10px;
-            text-align: center;
-        }
-        header h1 {
-            font-size: 28px;
-            font-weight: 400;
-            letter-spacing: 2px;
-            color: #ffd966;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        
-        /* Панель выбора мудреца */
         .sage-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 12px 16px;
-            background: rgba(255,255,255,0.1);
-            justify-content: center;
+            display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 16px;
+            background: rgba(255,255,255,0.1); justify-content: center;
         }
         .sage-btn {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 30px;
-            padding: 10px 18px;
-            font-size: 15px;
-            color: #fff;
-            backdrop-filter: blur(10px);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 30px; padding: 10px 18px; font-size: 15px; color: #fff;
+            backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 6px; white-space: nowrap;
         }
-        .sage-btn.active {
-            background: #ffd966;
-            color: #1e3c72;
-            border-color: #ffd966;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(255,217,102,0.4);
-        }
-        .sage-btn:active {
-            transform: scale(0.96);
-        }
+        .sage-btn.active { background: #ffd966; color: #1e3c72; border-color: #ffd966; font-weight: 600; }
+        .sage-btn:active { transform: scale(0.96); }
         
-        /* Окно чата */
         .chat-container {
-            flex: 1;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(15px);
-            margin: 16px;
-            border-radius: 20px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            min-height: 300px;
+            flex: 1; background: rgba(0,0,0,0.3); backdrop-filter: blur(15px);
+            margin: 16px; border-radius: 20px; padding: 16px; display: flex;
+            flex-direction: column; overflow-y: auto; min-height: 300px;
         }
-        .message {
-            margin-bottom: 14px;
-            display: flex;
-            flex-direction: column;
-        }
-        .message.user {
-            align-items: flex-end;
-        }
-        .message.sage {
-            align-items: flex-start;
-        }
+        .message { margin-bottom: 14px; display: flex; flex-direction: column; }
+        .message.user { align-items: flex-end; }
+        .message.sage { align-items: flex-start; }
         .bubble {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 16px;
-            line-height: 1.4;
-            word-wrap: break-word;
+            max-width: 85%; padding: 12px 16px; border-radius: 18px;
+            font-size: 16px; line-height: 1.4; word-wrap: break-word;
         }
-        .user .bubble {
-            background: #ffd966;
-            color: #1e3c72;
-            border-bottom-right-radius: 4px;
-        }
-        .sage .bubble {
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            border-bottom-left-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .sender-label {
-            font-size: 12px;
-            margin-bottom: 4px;
-            opacity: 0.7;
-        }
+        .user .bubble { background: #ffd966; color: #1e3c72; border-bottom-right-radius: 4px; }
+        .sage .bubble { background: rgba(255,255,255,0.15); color: #fff; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.1); }
+        .sender-label { font-size: 12px; margin-bottom: 4px; opacity: 0.7; }
         
-        /* Ввод */
         .input-area {
-            display: flex;
-            gap: 10px;
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(20px);
+            display: flex; gap: 10px; padding: 12px 16px;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(20px);
         }
         .input-area input {
-            flex: 1;
-            padding: 14px 18px;
-            border-radius: 30px;
-            border: none;
-            background: rgba(255,255,255,0.12);
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-            border: 1px solid rgba(255,255,255,0.15);
+            flex: 1; padding: 14px 18px; border-radius: 30px; border: none;
+            background: rgba(255,255,255,0.12); color: #fff; font-size: 16px;
+            outline: none; border: 1px solid rgba(255,255,255,0.15);
         }
-        .input-area input::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
+        .input-area input::placeholder { color: rgba(255,255,255,0.5); }
         .input-area button {
-            background: #ffd966;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            color: #1e3c72;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
+            background: #ffd966; border: none; border-radius: 50%;
+            width: 50px; height: 50px; font-size: 24px; color: #1e3c72;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
-        .input-area button:active {
-            transform: scale(0.9);
+        .input-area button:active { transform: scale(0.9); }
+        
+        .loading-dots {
+            display: inline-block;
+        }
+        .loading-dots span {
+            display: inline-block; width: 8px; height: 8px; margin: 0 2px;
+            background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>🌿 Мудрец</h1>
-    </header>
+    <header><h1>🌿 Мудрец</h1></header>
     
-    <!-- Кнопки мудрецов -->
     <div class="sage-selector" id="sageSelector">
         <button class="sage-btn" data-sage="islam">☪️ Мудрец Ислама</button>
         <button class="sage-btn" data-sage="transurfing">🌀 Мудрец Трансерфинга</button>
@@ -183,102 +90,79 @@
         <button class="sage-btn" data-sage="orthodoxy">✝️ Мудрец Православия</button>
     </div>
     
-    <!-- Чат -->
-    <div class="chat-container" id="chatContainer">
-        <!-- Сообщения будут появляться здесь -->
-    </div>
+    <div class="chat-container" id="chatContainer"></div>
     
-    <!-- Поле ввода -->
     <div class="input-area">
         <input type="text" id="userInput" placeholder="Задай вопрос мудрецу..." autocomplete="off">
         <button id="sendBtn">➤</button>
     </div>
     
     <script>
-        // === Мудрость каждого наставника ===
-        const sageWisdom = {
-            islam: {
-                name: 'Мудрец Ислама',
-                greeting: 'Ас-саляму алейкум. Я черпаю ответы из Корана и сунны пророка Мухаммада (ﷺ). Спрашивай.',
-                quote: '«Поистине, с тягостью приходит облегчение» (Коран, 94:5).',
-                topics: {
-                    гнев: 'Пророк (ﷺ) сказал: «Не гневайся». Если чувствуешь гнев, сядь, если стоишь; ляг, если сидишь. Помни: терпение — половина веры.',
-                    страх: 'Верующий знает: всё предопределено Аллахом. Бойся только Создателя, и тогда не будешь бояться творений. «Не печалься, ибо Аллах с нами» (Коран, 9:40).',
-                    деньги: 'Ищи пропитание честным трудом, избегай ростовщичества (риба). «Аллах разрешил торговлю и запретил лихву» (Коран, 2:275). Богатство — испытание.',
-                    смысл: 'Ты создан для поклонения Всевышнему и совершения благих дел. «Я сотворил джиннов и людей только для того, чтобы они поклонялись Мне» (Коран, 51:56).'
-                }
-            },
-            transurfing: {
-                name: 'Мудрец Трансерфинга',
-                greeting: 'Координатор приветствует тебя. Я опираюсь на принципы Трансерфинга реальности Вадима Зеланда.',
-                quote: '«Мир — это зеркало твоего отношения к нему. Откажись от важности, и ты обретёшь свободу».',
-                topics: {
-                    гнев: 'Важность и внутренний маятник вызывают гнев. Сбрось важность. Позволь ситуации быть. Помни: внешнее намерение работает через равновесие.',
-                    страх: 'Страх — это порождение избыточного потенциала. Перемести фокус на пустоту и на целевой кадр. «Всё будет так, как ты хочешь».',
-                    деньги: 'Избыточный потенциал долгов или жадности мешает. Деньги — атрибут комфорта, они приходят сами, когда ты на своей линии жизни. Действуй без важности.',
-                    смысл: 'Твоя цель — взять на себя роль Смотрителя и двигаться по своим уникальным секторам реальности, реализуя свою жизненную траекторию без борьбы.'
-                }
-            },
-            stoicism: {
-                name: 'Мудрец Стоицизма',
-                greeting: 'Приветствую, спутник. Я следую пути римских стоиков: Сенеки, Эпиктета, Марка Аврелия.',
-                quote: '«Не события тревожат людей, а их суждения об этих событиях» (Эпиктет).',
-                topics: {
-                    гнев: 'Гнев — краткое безумие. Сенека учил: «Лучшее лекарство от гнева — отсрочка». Сосчитай до десяти, отдели событие от своей оценки.',
-                    страх: 'Боишься лишь того, что тебе неподвластно. Но тебе подвластны только твои мысли и поступки. «Пусть случится то, что должно. Я сохраню достоинство».',
-                    деньги: 'Богатство — не благо и не зло, а лишь «безразличное». Используй его с умом, не привязывайся. «Беден не тот, у кого мало, а тот, кому всегда мало».',
-                    смысл: 'Жить в согласии с природой и Логосом; быть добродетельным и разумным членом общества. «Делай, что должно, и будь что будет».'
-                }
-            },
-            buddhism: {
-                name: 'Мудрец Буддизма',
-                greeting: 'Омм. Я размышляю над Дхаммой, учениями Будды Шакьямуни. Спрашивай о страдании и освобождении.',
-                quote: '«Ум — это всё. Ты становишься тем, о чём думаешь» (Дхаммапада).',
-                topics: {
-                    гнев: 'Гнев подобен раскалённому углю: ты держишь его, чтобы бросить в другого, но обжигаешь свою же руку. Практикуй метта-бхавану (развитие любящей доброты).',
-                    страх: 'Страх рождается из привязанности к эго. Медитация успокаивает ум. Вспомни: всё непостоянно (аничча). Не цепляйся.',
-                    деньги: 'Материальные блага не приносят постоянного счастья. Ищи Срединный путь: не роскошь и не аскеза сами по себе, а осознанное использование.',
-                    смысл: 'Прекратить дуккху (страдание) через Благородный Восьмеричный путь. Цель — нирвана. Но начинается всё с правильного воззрения.'
-                }
-            },
-            orthodoxy: {
-                name: 'Мудрец Православия',
-                greeting: 'Мир ти и благословение Господне. Я буду делиться мыслями святых отцов и Священным Писанием.',
-                quote: '«Всё испытывайте, хорошего держитесь» (1 Фес. 5:21).',
-                topics: {
-                    гнев: '«Гнев человека не творит правды Божией» (Иак. 1:20). Молись кратко: «Господи Иисусе Христе, помилуй мя грешнаго». Уклонись от раздора.',
-                    страх: 'Страх — от маловерия. «В любви нет страха, но совершенная любовь изгоняет страх» (1 Ин. 4:18). Доверься Промыслу: даже волос с головы не упадёт без воли Отца.',
-                    деньги: '«Стяжи дух мирен, и тысячи вокруг тебя спасутся» (прп. Серафим Саровский). Богатство не запретно, но «корень всех зол есть сребролюбие» (1 Тим. 6:10). Делитесь с нуждающимися.',
-                    смысл: 'Обожение (теосис) — единение с Богом через благодать. Цель жизни христианина — стяжание Духа Святого и любовь к Богу и ближнему.'
-                }
-            }
+        // ========== ВСТАВЬ СВОЙ API-КЛЮЧ НИЖЕ ==========
+        const DEEPSEEK_API_KEY = sk-500bf87c6a874d99bcb4b052aed52f15;   // <--- замени на ключ из кабинета DeepSeek
+        const API_URL = 'https://api.deepseek.com/v1/chat/completions';
+        
+        // ========== СИСТЕМНЫЕ ПРОМПТЫ (ДУХОВНЫЙ ОБЛИК МУДРЕЦОВ) ==========
+        const sagePrompts = {
+            islam: `Ты — Мудрец Ислама, глубоко знающий Коран, сунну и исламское богословие.
+Отвечай на вопросы пользователя, опираясь исключительно на священные тексты и труды признанных исламских учёных (например, Ибн Касир, ан-Навави).
+В начале каждого ответа приводи уместный аят или хадис в качестве напоминания.
+Если вопрос касается медицины, техники или права в бытовом смысле (например, «какую таблетку выпить», «как починить розетку»), подчеркни, что ты не специалист в этой области, но дай наставление, связанное с верой (терпение, упование на Аллаха, обращение к знающим людям).
+Тон — уважительный, спокойный, ободряющий. Ты должен помочь человеку укрепиться в вере и найти мудрость в сложной ситуации.`,
+            transurfing: `Ты — Мудрец Трансерфинга, знаток учения Вадима Зеланда. Твоя задача — отвечать через призму Трансерфинга реальности: объяснять про маятники, избыточные потенциалы, важность, внешнее намерение, целевой кадр, фрейле.
+Цитируй ключевые идеи из книг Зеланда. Помогай снизить важность, переключить внимание, настроиться на благоприятный сектор реальности.
+По вопросам здоровья и безопасности напоминай, что тело принадлежит этому миру и нужно действовать разумно (обращаться к врачам), но дух может оставаться в состоянии Смотрителя.
+Тон — лёгкий, иногда метафоричный, расширяющий сознание.`,
+            stoicism: `Ты — Мудрец Стоицизма, последователь Эпиктета, Сенеки, Марка Аврелия. Твоя мудрость основана на различении того, что в нашей власти и что нет, на добродетели, мужестве, умеренности, справедливости.
+Отвечай цитатами стоиков или перефразируй их мысли применительно к ситуации. Разбирай эмоции пользователя через принцип: «Не вещи тревожат нас, а наши суждения о вещах».
+В практических вопросах, требующих специальных знаний (медицина, финансы), советуй проявлять благоразумие и обращаться к профессионалам, сохраняя внутренний покой.
+Тон — твёрдый, рациональный, но полный сострадания и мудрой отстранённости.`,
+            buddhism: `Ты — Мудрец Буддизма (буддийский наставник), владеющий Дхаммой. Опирайся на Четыре Благородные Истины, Восьмеричный путь, учение о непостоянстве (аничча), пустотности, сострадании.
+Приводи примеры из Дхаммапады или джатак. Помогай увидеть корень страдания в привязанностях и желаниях.
+В вопросах практического характера напоминай о Срединном пути и необходимости заботиться о здоровье, чтобы продолжать практику, но не привязываться к результату.
+Тон — мягкий, созерцательный, проницательный.`,
+            orthodoxy: `Ты — Мудрец Православия (православный старец, духовный наставник). Твои ответы основаны на Священном Писании, трудах святых отцов (Иоанн Златоуст, Василий Великий, Серафим Саровский и др.) и православной аскетике.
+Каждый ответ начинай с цитаты из Библии или отцов. Говори о борьбе со страстями, молитве, покаянии, смирении, любви к ближнему.
+Если вопрос лежит вне духовной сферы (техника, медицина), напомни, что Бог дал людям врачей и мастеров, и стоит воспользоваться их помощью, сохраняя мир в душе и молитву.
+Тон — отеческий, тёплый, строгий в истине, но милующий.`
         };
-
-        // === ЛОГИКА ИНТЕРФЕЙСА ===
+        
+        const sageNames = {
+            islam: 'Мудрец Ислама',
+            transurfing: 'Мудрец Трансерфинга',
+            stoicism: 'Мудрец Стоицизма',
+            buddhism: 'Мудрец Буддизма',
+            orthodoxy: 'Мудрец Православия'
+        };
+        
+        // ========== ЛОГИКА ЧАТА ==========
         const sageButtons = document.querySelectorAll('.sage-btn');
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
         
-        let currentSage = 'islam'; // по умолчанию ислам
+        let currentSage = 'islam';
+        // Храним историю сообщений для каждого мудреца (чтобы ИИ помнил контекст)
+        const conversationHistory = {
+            islam: [],
+            transurfing: [],
+            stoicism: [],
+            buddhism: [],
+            orthodoxy: []
+        };
         
-        // Функция добавления сообщения
         function appendMessage(text, sender, sageName = '') {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            messageDiv.classList.add(sender === 'user' ? 'user' : 'sage');
-            
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender === 'user' ? 'user' : 'sage');
             const label = document.createElement('div');
             label.classList.add('sender-label');
             label.textContent = sender === 'user' ? 'Вы' : (sageName || 'Мудрец');
-            
             const bubble = document.createElement('div');
             bubble.classList.add('bubble');
             bubble.textContent = text;
-            
-            messageDiv.appendChild(label);
-            messageDiv.appendChild(bubble);
-            chatContainer.appendChild(messageDiv);
+            msgDiv.appendChild(label);
+            msgDiv.appendChild(bubble);
+            chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
         
@@ -293,71 +177,96 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
         
-        // Установка активного мудреца
+        // Индикатор загрузки (три точки)
+        function showLoading() {
+            const loader = document.createElement('div');
+            loader.classList.add('message', 'sage');
+            loader.id = 'loader';
+            const label = document.createElement('div');
+            label.classList.add('sender-label');
+            label.textContent = sageNames[currentSage] || 'Мудрец';
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+            loader.appendChild(label);
+            loader.appendChild(bubble);
+            chatContainer.appendChild(loader);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function removeLoading() {
+            const loader = document.getElementById('loader');
+            if (loader) loader.remove();
+        }
+        
+        // Стартовое приветствие
+        document.querySelector('.sage-btn[data-sage="islam"]').classList.add('active');
+        appendSystemMessage('☪️ ' + sagePrompts.islam.split('\n')[0].replace('Ты — ', ''));
+        
         sageButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 sageButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentSage = btn.getAttribute('data-sage');
-                const sage = sageWisdom[currentSage];
-                if (sage) {
-                    appendSystemMessage(sage.greeting);
-                }
+                appendSystemMessage(`Вы говорите с ${sageNames[currentSage]}`);
             });
         });
         
-        // Начальное приветствие
-        document.querySelector('.sage-btn[data-sage="islam"]').classList.add('active');
-        appendSystemMessage(sageWisdom.islam.greeting);
-        
-        // Определение темы по ключевым словам
-        function detectTopic(userText) {
-            const lower = userText.toLowerCase();
-            if (lower.includes('гнев') || lower.includes('злюсь') || lower.includes('бешенство') || lower.includes('ярость')) return 'гнев';
-            if (lower.includes('страх') || lower.includes('боюсь') || lower.includes('тревог') || lower.includes('ужас')) return 'страх';
-            if (lower.includes('деньг') || lower.includes('заработать') || lower.includes('богатств') || lower.includes('бедност') || lower.includes('финанс')) return 'деньги';
-            if (lower.includes('смысл') || lower.includes('зачем') || lower.includes('предназначение') || lower.includes('жить')) return 'смысл';
-            return null;
-        }
-        
-        function getTopicName(topicKey) {
-            const names = { гнев: 'гневе', страх: 'страхе', деньги: 'деньгах', смысл: 'смысле жизни' };
-            return names[topicKey] || 'этой теме';
-        }
-        
-        // Ответ мудреца
-        function getSageReply(userText, sageKey) {
-            const sage = sageWisdom[sageKey];
-            if (!sage) return 'Я пока этого мудреца не знаю. Выбери другого.';
-            
-            const topic = detectTopic(userText);
-            if (topic && sage.topics[topic]) {
-                return `${sage.quote}\n\nНа твой вопрос о ${getTopicName(topic)} отвечаю:\n${sage.topics[topic]}`;
-            } else {
-                return `${sage.quote}\n\nЯ не врач и не специалист по таким мирским вещам. Но мудрость нашего учения советует сохранять спокойствие и искать знающих людей. Не паникуй.`;
-            }
-        }
-        
-        // Отправка сообщения
-        function sendMessage() {
+        // Отправка сообщения и запрос к ИИ
+        async function sendMessage() {
             const text = userInput.value.trim();
-            if (text === '') return;
+            if (!text) return;
             
             appendMessage(text, 'user');
             userInput.value = '';
             
-            setTimeout(() => {
-                const reply = getSageReply(text, currentSage);
-                const sageName = sageWisdom[currentSage]?.name || 'Мудрец';
-                appendMessage(reply, 'sage', sageName);
-            }, 600);
+            // Добавляем сообщение пользователя в историю
+            conversationHistory[currentSage].push({ role: 'user', content: text });
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [
+                            { role: 'system', content: sagePrompts[currentSage] },
+                            ...conversationHistory[currentSage]
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 800
+                    })
+                });
+                
+                const data = await response.json();
+                removeLoading();
+                
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'Ошибка запроса');
+                }
+                
+                const reply = data.choices[0].message.content;
+                appendMessage(reply, 'sage', sageNames[currentSage]);
+                // Сохраняем ответ в историю
+                conversationHistory[currentSage].push({ role: 'assistant', content: reply });
+                
+            } catch (error) {
+                removeLoading();
+                console.error(error);
+                appendSystemMessage('⚠️ Не удалось связаться с мудрецом. Проверь интернет или попробуй позже.');
+                // Убираем последнее сообщение пользователя из истории, раз не получили ответ
+                conversationHistory[currentSage].pop();
+            }
         }
         
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+            if (e.key === 'Enter') sendMessage();
         });
         
         // Service Worker (PWA)
