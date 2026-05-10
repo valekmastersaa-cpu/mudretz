@@ -46,7 +46,7 @@
     </div>
     <script>
         // ========== ТВОЙ API-КЛЮЧ ==========
-        const DEEPSEEK_API_KEY = 'sk-500bf87c6a874d99bcb4b052aed52f15';
+        const DEEPSEEK_API_KEY = 'sk-ded18ed942a345b7845c2d5ee6978de2';
         const API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
         const sagePrompts = {
@@ -107,7 +107,7 @@
             try {
                 const resp = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + DEEPSEEK_API_KEY },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-ded18ed942a345b7845c2d5ee6978de2' },
                     body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: sagePrompts[currentSage] }, ...conversationHistory[currentSage]], temperature: 0.8, max_tokens: 800 })
                 });
                 const data = await resp.json();
