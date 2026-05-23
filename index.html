@@ -54,12 +54,12 @@
         .message { margin-bottom: 14px; display: flex; flex-direction: column; }
         .message.user { align-items: flex-end; } .message.sage { align-items: flex-start; }
         .bubble { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
-        .user .bubble { background: var(--user-bubble-color, #ffd966); color: #1e3c72; }
-        .sage .bubble { background: var(--sage-bubble-color, rgba(255,255,255,0.15)); color: #fff; }
-        .sender-label { font-size: 12px; margin-bottom: 4px; opacity: 0.7; }
+        .user .bubble { background: var(--user-bubble-color, #ffd966); color: var(--user-text-color, #1e3c72); }
+        .sage .bubble { background: var(--sage-bubble-color, rgba(255,255,255,0.15)); color: var(--sage-text-color, #fff); }
+        .sender-label { font-size: 12px; margin-bottom: 4px; opacity: 0.7; color: inherit; }
         .input-area { display: flex; gap: 10px; padding: 12px 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(20px); }
         .input-area input { flex: 1; padding: 14px 18px; border-radius: 30px; border: none; background: rgba(255,255,255,0.12); color: #fff; font-size: 16px; outline: none; }
-        .input-area button { background: var(--user-bubble-color, #ffd966); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; color: #1e3c72; cursor: pointer; }
+        .input-area button { background: var(--user-bubble-color, #ffd966); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; color: var(--user-text-color, #1e3c72); cursor: pointer; }
         .loading-dots span { display: inline-block; width: 8px; height: 8px; margin: 0 2px; background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both; }
         .loading-dots span:nth-child(2) { animation-delay: 0.2s; } .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
@@ -84,7 +84,7 @@
         </div>
         <div class="new-chat-btn" id="newChatBtn">＋ Новый чат</div>
         <div class="chat-list" id="chatList"></div>
-        <div class="sidebar-footer">Мудрец v0.6</div>
+        <div class="sidebar-footer">Мудрец v0.7</div>
     </div>
     <div class="main" id="main">
         <div class="top-bar">
@@ -112,13 +112,13 @@
         const STORAGE_KEY_API = 'mudrets_groq_key';
         const STORAGE_KEY_CHATS = 'mudrets_chats';
 
-        // Цвета: основной фон, облачко пользователя (и кнопка), облачко мудреца
+        // Цвета: основной фон, облачко пользователя (и кнопка), облачко мудреца, цвет текста пользователя, цвет текста мудреца
         const sages = {
-            islam: { name: 'Мудрец Ислама', bg: '#9eff85', userBubble: '#76b366', sageBubble: '#E5FFE5' },
-            transurfing: { name: 'Мудрец Трансерфинга', bg: '#ff5b3a', userBubble: '#ff8969', sageBubble: '#ffd9cb' },
-            stoicism: { name: 'Мудрец Стоицизма', bg: '#FFC966', userBubble: '#fff6d6', sageBubble: '#808080' },
-            buddhism: { name: 'Мудрец Буддизма', bg: '#FFEDCC', userBubble: '#FFEDCC', sageBubble: '#9e8770' },
-            orthodoxy: { name: 'Мудрец Православия', bg: '#c190d2', userBubble: '#9c7899', sageBubble: '#5e5b79' }
+            islam: { name: 'Мудрец Ислама', bg: '#9eff85', userBubble: '#76b366', sageBubble: '#E5FFE5', userText: '#000', sageText: '#000' },
+            transurfing: { name: 'Мудрец Трансерфинга', bg: '#ff5b3a', userBubble: '#ff8969', sageBubble: '#ffd9cb', userText: '#000', sageText: '#000' },
+            stoicism: { name: 'Мудрец Стоицизма', bg: '#FFC966', userBubble: '#fff6d6', sageBubble: '#808080', userText: '#1e3c72', sageText: '#fff' },
+            buddhism: { name: 'Мудрец Буддизма', bg: '#FFEDCC', userBubble: '#FFEDCC', sageBubble: '#9e8770', userText: '#1e3c72', sageText: '#fff' },
+            orthodoxy: { name: 'Мудрец Православия', bg: '#c190d2', userBubble: '#9c7899', sageBubble: '#5e5b79', userText: '#1e3c72', sageText: '#fff' }
         };
 
         const sagePrompts = {
@@ -201,6 +201,8 @@
             main.style.backgroundColor = sage.bg;
             document.documentElement.style.setProperty('--user-bubble-color', sage.userBubble);
             document.documentElement.style.setProperty('--sage-bubble-color', sage.sageBubble);
+            document.documentElement.style.setProperty('--user-text-color', sage.userText);
+            document.documentElement.style.setProperty('--sage-text-color', sage.sageText);
             const sageChats = chats[currentSage] || [];
             if (sageChats.length > 0) {
                 loadChat(sageChats[0].id);
@@ -336,7 +338,7 @@
                             ...findChat(currentChatId).messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }))
                         ],
                         temperature: 0.8,
-                        max_tokens: 450
+                        max_tokens: 350
                     })
                 });
                 const data = await resp.json();
