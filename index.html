@@ -9,32 +9,113 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 100vh; display: flex; flex-direction: column; color: #fff; }
-        header { padding: 20px 16px 10px; text-align: center; }
-        header h1 { font-size: 28px; font-weight: 400; letter-spacing: 2px; color: #ffd966; }
-        .sage-selector { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,0.1); justify-content: center; }
-        .sage-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 10px 18px; font-size: 15px; color: #fff; backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-        .sage-btn.active { background: #ffd966; color: #1e3c72; border-color: #ffd966; font-weight: 600; }
-        .chat-container { flex: 1; background: rgba(0,0,0,0.3); backdrop-filter: blur(15px); margin: 16px; border-radius: 20px; padding: 16px; overflow-y: auto; min-height: 300px; }
+        body { font-family: system-ui, sans-serif; height: 100vh; display: flex; overflow: hidden; }
+        /* Боковая панель */
+        .sidebar {
+            width: 280px; min-width: 280px; background: #0d1b2a; color: #e0e0e0;
+            display: flex; flex-direction: column; border-right: 1px solid #1b2a3a;
+            transition: margin-left 0.3s;
+        }
+        .sidebar.collapsed { margin-left: -280px; }
+        .sidebar-header {
+            padding: 16px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #1b2a3a;
+        }
+        .sage-dropdown {
+            position: relative; flex: 1; margin-right: 12px;
+        }
+        .sage-current {
+            background: #1b2a3a; border-radius: 8px; padding: 8px 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between;
+            font-weight: 500; color: #ffd966;
+        }
+        .sage-list {
+            position: absolute; top: 100%; left: 0; right: 0; background: #1b2a3a;
+            border-radius: 0 0 8px 8px; display: none; z-index: 10;
+        }
+        .sage-list.show { display: block; }
+        .sage-option {
+            padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .sage-option:hover { background: #2a3a4a; }
+        .collapse-btn {
+            background: none; border: none; color: #e0e0e0; font-size: 20px; cursor: pointer;
+        }
+        .new-chat-btn {
+            margin: 12px; padding: 10px; background: #1b2a3a; border-radius: 8px;
+            text-align: center; cursor: pointer; transition: background 0.2s;
+        }
+        .new-chat-btn:hover { background: #2a3a4a; }
+        .chat-list {
+            flex: 1; overflow-y: auto; padding: 0 12px 12px;
+        }
+        .chat-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 4px;
+        }
+        .chat-item.active { background: #2a3a4a; }
+        .chat-item:hover { background: #1e2e3e; }
+        .chat-title {
+            flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px;
+        }
+        .chat-delete {
+            background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; opacity: 0.6;
+        }
+        .chat-delete:hover { opacity: 1; color: #ff6666; }
+        .sidebar-footer {
+            padding: 12px; border-top: 1px solid #1b2a3a; font-size: 12px; opacity: 0.6;
+        }
+        /* Основная область */
+        .main {
+            flex: 1; display: flex; flex-direction: column; background: #1e3c72;
+            transition: background 0.3s;
+        }
+        .top-bar {
+            display: flex; align-items: center; padding: 8px 16px; gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .menu-btn {
+            background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;
+        }
+        .chat-area {
+            flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 16px;
+        }
         .message { margin-bottom: 14px; display: flex; flex-direction: column; }
-        .message.user { align-items: flex-end; } .message.sage { align-items: flex-start; }
-        .bubble { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
+        .message.user { align-items: flex-end; }
+        .message.sage { align-items: flex-start; }
+        .bubble {
+            max-width: 85%; padding: 12px 16px; border-radius: 18px;
+            font-size: 16px; line-height: 1.4; word-wrap: break-word;
+        }
         .user .bubble { background: #ffd966; color: #1e3c72; }
         .sage .bubble { background: rgba(255,255,255,0.15); color: #fff; }
         .sender-label { font-size: 12px; margin-bottom: 4px; opacity: 0.7; }
-        .input-area { display: flex; gap: 10px; padding: 12px 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(20px); }
-        .input-area input { flex: 1; padding: 14px 18px; border-radius: 30px; border: none; background: rgba(255,255,255,0.12); color: #fff; font-size: 16px; outline: none; }
-        .input-area button { background: #ffd966; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; color: #1e3c72; cursor: pointer; }
-        .loading-dots span { display: inline-block; width: 8px; height: 8px; margin: 0 2px; background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both; }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; } .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        .input-area {
+            display: flex; gap: 10px; padding: 12px 16px;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(20px);
+        }
+        .input-area input {
+            flex: 1; padding: 14px 18px; border-radius: 30px; border: none;
+            background: rgba(255,255,255,0.12); color: #fff; font-size: 16px; outline: none;
+        }
+        .input-area button {
+            background: #ffd966; border: none; border-radius: 50%;
+            width: 50px; height: 50px; font-size: 24px; color: #1e3c72; cursor: pointer;
+        }
+        .loading-dots span {
+            display: inline-block; width: 8px; height: 8px; margin: 0 2px;
+            background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
-        /* Стили для модального окна ввода ключа */
+        /* Модалка ключа */
         .modal-overlay {
             display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;
         }
         .modal-box {
-            background: #1e3c72; border: 1px solid #ffd966; border-radius: 20px; padding: 24px;
+            background: #1b2a3a; border: 1px solid #ffd966; border-radius: 20px; padding: 24px;
             max-width: 400px; width: 90%; color: #fff; text-align: center;
         }
         .modal-box h2 { margin-bottom: 12px; color: #ffd966; }
@@ -44,26 +125,42 @@
         }
         .modal-box button {
             background: #ffd966; border: none; padding: 10px 24px; border-radius: 20px;
-            font-size: 16px; font-weight: bold; cursor: pointer; color: #1e3c72;
+            font-size: 16px; font-weight: bold; cursor: pointer; color: #0d1b2a;
         }
     </style>
 </head>
 <body>
-    <header><h1>🌿 Мудрец</h1></header>
-    <div class="sage-selector" id="sageSelector">
-        <button class="sage-btn" data-sage="islam">☪️ Мудрец Ислама</button>
-        <button class="sage-btn" data-sage="transurfing">🌀 Мудрец Трансерфинга</button>
-        <button class="sage-btn" data-sage="stoicism">🏛️ Мудрец Стоицизма</button>
-        <button class="sage-btn" data-sage="buddhism">☸️ Мудрец Буддизма</button>
-        <button class="sage-btn" data-sage="orthodoxy">✝️ Мудрец Православия</button>
-    </div>
-    <div class="chat-container" id="chatContainer"></div>
-    <div class="input-area">
-        <input type="text" id="userInput" placeholder="Задай вопрос мудрецу..." autocomplete="off">
-        <button id="sendBtn">➤</button>
+    <!-- Боковая панель -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sage-dropdown" id="sageDropdown">
+                <div class="sage-current" id="currentSageBtn">
+                    <span id="currentSageName">☪️ Мудрец Ислама</span>
+                    <span>▼</span>
+                </div>
+                <div class="sage-list" id="sageList"></div>
+            </div>
+            <button class="collapse-btn" id="collapseSidebarBtn">☰</button>
+        </div>
+        <div class="new-chat-btn" id="newChatBtn">＋ Новый чат</div>
+        <div class="chat-list" id="chatList"></div>
+        <div class="sidebar-footer">Мудрец v0.2</div>
     </div>
 
-    <!-- Модальное окно ввода ключа (показывается разово) -->
+    <!-- Основная область -->
+    <div class="main" id="main">
+        <div class="top-bar">
+            <button class="menu-btn" id="menuBtn">☰</button>
+            <span style="font-weight:500;">🌿 Мудрец</span>
+        </div>
+        <div class="chat-area" id="chatContainer"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Задай вопрос мудрецу..." autocomplete="off">
+            <button id="sendBtn">➤</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно ввода ключа -->
     <div class="modal-overlay" id="keyModal">
         <div class="modal-box">
             <h2>🔑 Введите ключ Groq API</h2>
@@ -75,96 +172,231 @@
     </div>
 
     <script>
+        // ==================== НАСТРОЙКИ ====================
         const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-        const STORAGE_KEY = 'mudrets_groq_key';
+        const MODEL = 'llama-3.3-70b-versatile';
+        const STORAGE_KEY_API = 'mudrets_groq_key';
+        const STORAGE_KEY_CHATS = 'mudrets_chats';
+
+        // Мудрецы
+        const sages = {
+            islam: { name: 'Мудрец Ислама', icon: '☪️', color: '#064e3b' },
+            transurfing: { name: 'Мудрец Трансерфинга', icon: '🌀', color: '#4c1d95' },
+            stoicism: { name: 'Мудрец Стоицизма', icon: '🏛️', color: '#7f1d1d' },
+            buddhism: { name: 'Мудрец Буддизма', icon: '☸️', color: '#9a3412' },
+            orthodoxy: { name: 'Мудрец Православия', icon: '✝️', color: '#1e3a8a' }
+        };
 
         const sagePrompts = {
-            islam: `Ты — Мудрец Ислама, глубоко знающий Коран, сунну и исламское богословие. Отвечай на вопросы пользователя, опираясь исключительно на священные тексты и труды признанных исламских учёных. В начале каждого ответа приводи уместный аят или хадис. Если вопрос касается медицины, техники или права в бытовом смысле, подчеркни, что ты не специалист, но дай наставление, связанное с верой. Тон — уважительный, спокойный, ободряющий.`,
-            transurfing: `Ты — Мудрец Трансерфинга, знаток учения Вадима Зеланда. Отвечай через призму Трансерфинга реальности: маятники, избыточные потенциалы, важность, внешнее намерение. Цитируй ключевые идеи. По вопросам здоровья напоминай, что тело принадлежит этому миру и нужно обращаться к врачам, но дух может оставаться Смотрителем. Тон — лёгкий, метафоричный.`,
-            stoicism: `Ты — Мудрец Стоицизма, последователь Эпиктета, Сенеки, Марка Аврелия. Мудрость основана на различении того, что в нашей власти и что нет, на добродетели. Отвечай цитатами стоиков. В практических вопросах советуй благоразумие и обращение к профессионалам. Тон — твёрдый, рациональный, с состраданием.`,
-            buddhism: `Ты — Мудрец Буддизма. Опирайся на Четыре Благородные Истины, Восьмеричный путь, учение о непостоянстве. Приводи примеры из Дхаммапады. В вопросах практического характера напоминай о Срединном пути. Тон — мягкий, созерцательный.`,
-            orthodoxy: `Ты — Мудрец Православия (старец). Ответы основаны на Писании и трудах святых отцов. Начинай с цитаты из Библии или отцов. Говори о борьбе со страстями, молитве, смирении. В практических вопросах напоминай, что Бог дал людям врачей и мастеров. Тон — отеческий, тёплый, строгий в истине, но милующий.`
+            islam: `Ты — Мудрец Ислама... (твой старый промпт)`,
+            transurfing: `Ты — Мудрец Трансерфинга...`,
+            stoicism: `Ты — Мудрец Стоицизма...`,
+            buddhism: `Ты — Мудрец Буддизма...`,
+            orthodoxy: `Ты — Мудрец Православия...`
         };
-        const sageNames = { islam: 'Мудрец Ислама', transurfing: 'Мудрец Трансерфинга', stoicism: 'Мудрец Стоицизма', buddhism: 'Мудрец Буддизма', orthodoxy: 'Мудрец Православия' };
 
+        // ==================== СОСТОЯНИЕ ====================
+        let currentSage = 'islam';
+        let currentChatId = null;
+        let chats = {}; // { sageKey: [ { id, title, messages: [] } ] }
+
+        // ==================== DOM-элементы ====================
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main');
+        const currentSageBtn = document.getElementById('currentSageBtn');
+        const currentSageNameSpan = document.getElementById('currentSageName');
+        const sageList = document.getElementById('sageList');
+        const chatListDiv = document.getElementById('chatList');
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
-        let currentSage = 'islam';
-        const conversationHistory = { islam: [], transurfing: [], stoicism: [], buddhism: [], orthodoxy: [] };
-
-        // ========== БЕЗОПАСНОЕ ПОЛУЧЕНИЕ КЛЮЧА ==========
-        function getApiKey() {
-            return localStorage.getItem(STORAGE_KEY);
-        }
-
-        // Модальное окно
+        const sendBtn = document.getElementById('sendBtn');
+        const newChatBtn = document.getElementById('newChatBtn');
         const keyModal = document.getElementById('keyModal');
         const apiKeyInput = document.getElementById('apiKeyInput');
         const saveKeyBtn = document.getElementById('saveKeyBtn');
 
-        if (!getApiKey()) {
-            // Ключа нет — показываем окно
-            keyModal.style.display = 'flex';
-        } else {
-            keyModal.style.display = 'none';
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+        function loadChatsFromStorage() {
+            const stored = localStorage.getItem(STORAGE_KEY_CHATS);
+            return stored ? JSON.parse(stored) : {};
+        }
+        function saveChatsToStorage() {
+            localStorage.setItem(STORAGE_KEY_CHATS, JSON.stringify(chats));
         }
 
-        saveKeyBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (key) {
-                localStorage.setItem(STORAGE_KEY, key);
-                keyModal.style.display = 'none';
-                appendSystemMessage('🔑 Ключ сохранён. Можете общаться с мудрецами.');
-            }
-        });
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
 
-        function appendMessage(text, sender, sageName = '') {
+        function getApiKey() {
+            return localStorage.getItem(STORAGE_KEY_API);
+        }
+
+        // Отрисовка списка мудрецов в выпадающем меню
+        function renderSageList() {
+            sageList.innerHTML = '';
+            Object.entries(sages).forEach(([key, sage]) => {
+                const div = document.createElement('div');
+                div.className = 'sage-option';
+                div.innerHTML = `${sage.icon} ${sage.name}`;
+                div.addEventListener('click', () => {
+                    selectSage(key);
+                    sageList.classList.remove('show');
+                });
+                sageList.appendChild(div);
+            });
+        }
+
+        // Отрисовка списка чатов для текущего мудреца
+        function renderChatList() {
+            chatListDiv.innerHTML = '';
+            const sageChats = chats[currentSage] || [];
+            sageChats.forEach(chat => {
+                const item = document.createElement('div');
+                item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
+                item.innerHTML = `
+                    <span class="chat-title">${chat.title || 'Новый чат'}</span>
+                    <button class="chat-delete" data-chatid="${chat.id}">🗑</button>
+                `;
+                item.querySelector('.chat-title').addEventListener('click', () => loadChat(chat.id));
+                item.querySelector('.chat-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteChat(chat.id);
+                });
+                chatListDiv.appendChild(item);
+            });
+        }
+
+        function selectSage(key) {
+            currentSage = key;
+            const sage = sages[key];
+            currentSageNameSpan.textContent = `${sage.icon} ${sage.name}`;
+            document.getElementById('main').style.background = sage.color;
+            // Загружаем последний активный чат этого мудреца (или создаём новый)
+            const sageChats = chats[currentSage] || [];
+            if (sageChats.length > 0) {
+                loadChat(sageChats[0].id);
+            } else {
+                createNewChat();
+            }
+            renderChatList();
+        }
+
+        function createNewChat() {
+            if (!chats[currentSage]) chats[currentSage] = [];
+            const newChat = {
+                id: generateId(),
+                title: 'Новый чат',
+                messages: []
+            };
+            chats[currentSage].unshift(newChat);
+            saveChatsToStorage();
+            loadChat(newChat.id);
+            renderChatList();
+        }
+
+        function loadChat(chatId) {
+            currentChatId = chatId;
+            const chat = findChat(chatId);
+            if (!chat) return;
+            // Очищаем чат-контейнер и отрисовываем сообщения
+            chatContainer.innerHTML = '';
+            chat.messages.forEach(msg => {
+                appendMessageToContainer(msg.text, msg.sender, msg.sageName);
+            });
+            // Подсвечиваем активный чат
+            renderChatList();
+        }
+
+        function findChat(chatId) {
+            for (const sageKey in chats) {
+                const chat = chats[sageKey].find(c => c.id === chatId);
+                if (chat) return chat;
+            }
+            return null;
+        }
+
+        function deleteChat(chatId) {
+            for (const sageKey in chats) {
+                const index = chats[sageKey].findIndex(c => c.id === chatId);
+                if (index !== -1) {
+                    chats[sageKey].splice(index, 1);
+                    saveChatsToStorage();
+                    if (chatId === currentChatId) {
+                        // Если удалили текущий чат, переключаемся на другой или создаём новый
+                        const remaining = chats[currentSage] || [];
+                        if (remaining.length > 0) {
+                            loadChat(remaining[0].id);
+                        } else {
+                            createNewChat();
+                        }
+                    }
+                    renderChatList();
+                    break;
+                }
+            }
+        }
+
+        function appendMessageToContainer(text, sender, sageName = '') {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender === 'user' ? 'user' : 'sage');
-            const label = document.createElement('div'); label.classList.add('sender-label');
+            const label = document.createElement('div');
+            label.classList.add('sender-label');
             label.textContent = sender === 'user' ? 'Вы' : (sageName || 'Мудрец');
-            const bubble = document.createElement('div'); bubble.classList.add('bubble'); bubble.textContent = text;
-            msgDiv.appendChild(label); msgDiv.appendChild(bubble);
-            chatContainer.appendChild(msgDiv); chatContainer.scrollTop = chatContainer.scrollHeight;
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.textContent = text;
+            msgDiv.appendChild(label);
+            msgDiv.appendChild(bubble);
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-        function appendSystemMessage(text) {
-            const msgDiv = document.createElement('div'); msgDiv.style.textAlign = 'center'; msgDiv.style.fontSize = '13px'; msgDiv.style.opacity = '0.7'; msgDiv.style.margin = '8px 0'; msgDiv.textContent = text;
-            chatContainer.appendChild(msgDiv); chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        function addMessageToCurrentChat(text, sender, sageName) {
+            const chat = findChat(currentChatId);
+            if (chat) {
+                chat.messages.push({ text, sender, sageName });
+                // Автоназвание по первому сообщению пользователя
+                if (sender === 'user' && chat.title === 'Новый чат') {
+                    chat.title = text.length > 30 ? text.substring(0, 30) + '...' : text;
+                }
+                saveChatsToStorage();
+                renderChatList();
+            }
         }
+
         function showLoading() {
-            const loader = document.createElement('div'); loader.classList.add('message', 'sage'); loader.id = 'loader';
-            const label = document.createElement('div'); label.classList.add('sender-label'); label.textContent = sageNames[currentSage] || 'Мудрец';
-            const bubble = document.createElement('div'); bubble.classList.add('bubble'); bubble.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
-            loader.appendChild(label); loader.appendChild(bubble);
-            chatContainer.appendChild(loader); chatContainer.scrollTop = chatContainer.scrollHeight;
+            const loader = document.createElement('div');
+            loader.classList.add('message', 'sage');
+            loader.id = 'loader';
+            const label = document.createElement('div');
+            label.classList.add('sender-label');
+            label.textContent = sages[currentSage]?.name || 'Мудрец';
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+            loader.appendChild(label);
+            loader.appendChild(bubble);
+            chatContainer.appendChild(loader);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-        function removeLoading() { const l = document.getElementById('loader'); if (l) l.remove(); }
-
-        document.querySelector('.sage-btn[data-sage="islam"]').classList.add('active');
-        appendSystemMessage('☪️ Мудрец Ислама');
-
-        document.querySelectorAll('.sage-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.sage-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentSage = btn.getAttribute('data-sage');
-                appendSystemMessage('Вы говорите с ' + sageNames[currentSage]);
-            });
-        });
+        function removeLoading() {
+            const l = document.getElementById('loader');
+            if (l) l.remove();
+        }
 
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
-
             const key = getApiKey();
             if (!key) {
                 keyModal.style.display = 'flex';
                 return;
             }
-
-            appendMessage(text, 'user');
+            // Добавляем сообщение пользователя
+            appendMessageToContainer(text, 'user');
+            addMessageToCurrentChat(text, 'user', 'Вы');
             userInput.value = '';
-            conversationHistory[currentSage].push({ role: 'user', content: text });
             showLoading();
 
             try {
@@ -175,8 +407,11 @@
                         'Authorization': 'Bearer ' + key
                     },
                     body: JSON.stringify({
-                        model: 'llama3-70b-8192',
-                        messages: [{ role: 'system', content: sagePrompts[currentSage] }, ...conversationHistory[currentSage]],
+                        model: MODEL,
+                        messages: [
+                            { role: 'system', content: sagePrompts[currentSage] },
+                            ...findChat(currentChatId).messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }))
+                        ],
                         temperature: 0.8,
                         max_tokens: 800
                     })
@@ -185,24 +420,56 @@
                 removeLoading();
                 if (!resp.ok) throw new Error(data.error?.message || 'Ошибка');
                 const reply = data.choices[0].message.content;
-                appendMessage(reply, 'sage', sageNames[currentSage]);
-                conversationHistory[currentSage].push({ role: 'assistant', content: reply });
+                appendMessageToContainer(reply, 'sage', sages[currentSage].name);
+                addMessageToCurrentChat(reply, 'sage', sages[currentSage].name);
             } catch (e) {
                 removeLoading();
                 console.error(e);
-                appendSystemMessage('⚠️ Мудрец временно недоступен. Проверьте ключ или интернет.');
-                conversationHistory[currentSage].pop();
+                appendMessageToContainer('⚠️ Мудрец временно недоступен. Проверьте ключ или интернет.', 'sage', 'Система');
             }
         }
 
-        document.getElementById('sendBtn').addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMessage(); });
+        // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+        currentSageBtn.addEventListener('click', () => {
+            sageList.classList.toggle('show');
+        });
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.sage-dropdown')) {
+                sageList.classList.remove('show');
+            }
+        });
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('service-worker.js').catch(function(){});
-            });
+        document.getElementById('collapseSidebarBtn').addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        newChatBtn.addEventListener('click', createNewChat);
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Работа с ключом
+        if (getApiKey()) {
+            keyModal.style.display = 'none';
+        } else {
+            keyModal.style.display = 'flex';
         }
+        saveKeyBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem(STORAGE_KEY_API, key);
+                keyModal.style.display = 'none';
+            }
+        });
+
+        // Инициализация
+        chats = loadChatsFromStorage();
+        renderSageList();
+        selectSage('islam');
     </script>
 </body>
 </html>
