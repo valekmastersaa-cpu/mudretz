@@ -54,12 +54,12 @@
         .message { margin-bottom: 14px; display: flex; flex-direction: column; }
         .message.user { align-items: flex-end; } .message.sage { align-items: flex-start; }
         .bubble { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
-        .user .bubble { background: #ffd966; color: #1e3c72; }
+        .user .bubble { background: var(--user-bubble-color, #ffd966); color: #1e3c72; }
         .sage .bubble { background: var(--sage-bubble-color, rgba(255,255,255,0.15)); color: #fff; }
         .sender-label { font-size: 12px; margin-bottom: 4px; opacity: 0.7; }
         .input-area { display: flex; gap: 10px; padding: 12px 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(20px); }
         .input-area input { flex: 1; padding: 14px 18px; border-radius: 30px; border: none; background: rgba(255,255,255,0.12); color: #fff; font-size: 16px; outline: none; }
-        .input-area button { background: #ffd966; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; color: #1e3c72; cursor: pointer; }
+        .input-area button { background: var(--user-bubble-color, #ffd966); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; color: #1e3c72; cursor: pointer; }
         .loading-dots span { display: inline-block; width: 8px; height: 8px; margin: 0 2px; background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both; }
         .loading-dots span:nth-child(2) { animation-delay: 0.2s; } .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
@@ -84,7 +84,7 @@
         </div>
         <div class="new-chat-btn" id="newChatBtn">＋ Новый чат</div>
         <div class="chat-list" id="chatList"></div>
-        <div class="sidebar-footer">Мудрец v0.5</div>
+        <div class="sidebar-footer">Мудрец v0.6</div>
     </div>
     <div class="main" id="main">
         <div class="top-bar">
@@ -112,13 +112,13 @@
         const STORAGE_KEY_API = 'mudrets_groq_key';
         const STORAGE_KEY_CHATS = 'mudrets_chats';
 
-        // Цвета: первый - основной фон, второй - облачко мудреца и акценты
+        // Цвета: основной фон, облачко пользователя (и кнопка), облачко мудреца
         const sages = {
-            islam: { name: 'Мудрец Ислама', color1: '#9eff85', color2: '#ff91ff' },
-            transurfing: { name: 'Мудрец Трансерфинга', color1: '#ff5b3a', color2: '#0000ff' },
-            stoicism: { name: 'Мудрец Стоицизма', color1: '#FFC966', color2: '#00ffa6' },
-            buddhism: { name: 'Мудрец Буддизма', color1: '#FFEDCC', color2: '#9e8770' },
-            orthodoxy: { name: 'Мудрец Православия', color1: '#c190d2', color2: '#5e5b79' }
+            islam: { name: 'Мудрец Ислама', bg: '#9eff85', userBubble: '#76b366', sageBubble: '#E5FFE5' },
+            transurfing: { name: 'Мудрец Трансерфинга', bg: '#ff5b3a', userBubble: '#ff8969', sageBubble: '#ffd9cb' },
+            stoicism: { name: 'Мудрец Стоицизма', bg: '#FFC966', userBubble: '#fff6d6', sageBubble: '#808080' },
+            buddhism: { name: 'Мудрец Буддизма', bg: '#FFEDCC', userBubble: '#FFEDCC', sageBubble: '#9e8770' },
+            orthodoxy: { name: 'Мудрец Православия', bg: '#c190d2', userBubble: '#9c7899', sageBubble: '#5e5b79' }
         };
 
         const sagePrompts = {
@@ -198,8 +198,9 @@
             currentSage = key;
             const sage = sages[key];
             currentSageNameSpan.textContent = sage.name;
-            main.style.backgroundColor = sage.color1;
-            document.documentElement.style.setProperty('--sage-bubble-color', sage.color2);
+            main.style.backgroundColor = sage.bg;
+            document.documentElement.style.setProperty('--user-bubble-color', sage.userBubble);
+            document.documentElement.style.setProperty('--sage-bubble-color', sage.sageBubble);
             const sageChats = chats[currentSage] || [];
             if (sageChats.length > 0) {
                 loadChat(sageChats[0].id);
