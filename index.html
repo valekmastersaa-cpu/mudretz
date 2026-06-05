@@ -128,8 +128,9 @@
 
     <script>
         // ==================== ТВОИ ДАННЫЕ SUPABASE ====================
-        // Замени на свой URL (например, https://abcdefgh.supabase.co) и anon key
-        const SUPABASE_URL = 'https://gzbwvewcxvinwnrlcwem.co';
+        // Правильный URL: https://gzbwvewcxvinwnrlcwem.supabase.co
+        const SUPABASE_URL = 'https://gzbwvewcxvinwnrlcwem.supabase.co';
+        // Замени на свой anon public ключ из Supabase (начинается на eyJ...)
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6Ynd2ZXdjeHZpbnducmxjd2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NjUyMDgsImV4cCI6MjA5NjI0MTIwOH0.4xPIXNkFc4KXAcaBiHCAGAdU6AQuR6VcK5Qg4yl8KFg';
         // ===============================================================
 
@@ -209,6 +210,7 @@
             }
         };
 
+        // ==================== СОСТОЯНИЕ ====================
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentLang = localStorage.getItem('mudrets_lang') || 'ru';
         let currentSage = 'islam';
@@ -231,7 +233,7 @@
         const langDropdown = document.getElementById('langDropdown');
         const logoutBtn = document.getElementById('logoutBtn');
 
-        // ==================== AUTH ====================
+        // ==================== АВТОРИЗАЦИЯ ====================
         async function checkAuth() {
             const { data: { session } } = await supabase.auth.getSession();
             user = session?.user || null;
@@ -307,7 +309,7 @@
             showAuthForm();
         });
 
-        // ==================== CHATS ====================
+        // ==================== ЧАТЫ: SUPABASE ====================
         async function loadChatsFromDB() {
             const { data, error } = await supabase
                 .from('chats')
@@ -353,7 +355,7 @@
             currentChatId = null;
         }
 
-        // ==================== RENDER ====================
+        // ==================== РЕНДЕРИНГ ====================
         function applyLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('mudrets_lang', lang);
@@ -419,7 +421,7 @@
             renderChatList();
         }
 
-        // ==================== CHAT OPERATIONS ====================
+        // ==================== ОПЕРАЦИИ С ЧАТАМИ ====================
         function selectSage(key) {
             currentSage = key;
             currentSageNameSpan.textContent = sages[key].name;
@@ -498,7 +500,7 @@
             renderChatList();
         }
 
-        // ==================== SEND MESSAGE ====================
+        // ==================== ОТПРАВКА СООБЩЕНИЯ ====================
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text || !user) return;
@@ -554,7 +556,7 @@
             if (l) l.remove();
         }
 
-        // ==================== MOBILE SIDEBAR ====================
+        // ==================== БОКОВАЯ ПАНЕЛЬ (МОБ.) ====================
         function isMobile() { return window.innerWidth <= 768; }
         function closeSidebarMobile() {
             if (isMobile()) {
@@ -587,7 +589,7 @@
         });
         overlay.addEventListener('click', closeSidebarMobile);
 
-        // ==================== EVENT LISTENERS ====================
+        // ==================== ОБРАБОТЧИКИ ====================
         currentSageBtn.addEventListener('click', () => sageList.classList.toggle('show'));
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.sage-dropdown')) sageList.classList.remove('show');
@@ -619,12 +621,13 @@
             });
         });
 
-        // ==================== INIT ====================
+        // ==================== ЗАПУСК ====================
         if (isMobile()) {
             sidebar.classList.add('collapsed');
             sidebar.classList.remove('open');
             overlay.classList.remove('active');
         }
+
         checkAuth();
 
         if ('serviceWorker' in navigator) {
