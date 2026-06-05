@@ -7,76 +7,29 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body {
-            height: 100dvh;
-            width: 100%;
-            overflow: hidden;
-            background: #000;
-            font-family: system-ui, sans-serif;
-        }
-        body {
-            display: flex;
-        }
+        html, body { height: 100dvh; width: 100%; overflow: hidden; background: #000; font-family: system-ui, sans-serif; }
+        body { display: flex; }
 
-        /* Оверлей */
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 50;
-        }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 50; }
 
-        /* Боковая панель */
-        .sidebar {
-            width: 280px; min-width: 280px;
-            background: #2c2c2c; color: #e0e0e0;
-            display: flex; flex-direction: column;
-            border-right: 1px solid #3a3a3a;
-            transition: margin-left 0.3s;
-            z-index: 100;
-            height: 100dvh;
-        }
-        .sidebar.collapsed {
-            margin-left: -280px;
-        }
+        .sidebar { width: 280px; min-width: 280px; background: #2c2c2c; color: #e0e0e0; display: flex; flex-direction: column; border-right: 1px solid #3a3a3a; transition: margin-left 0.3s; z-index: 100; height: 100dvh; }
+        .sidebar.collapsed { margin-left: -280px; }
 
         @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                top: 0; left: 0;
-                height: 100dvh;
-                margin-left: -280px;
-            }
-            .sidebar.open {
-                margin-left: 0;
-            }
-            .overlay.active {
-                display: block;
-            }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100dvh; margin-left: -280px; }
+            .sidebar.open { margin-left: 0; }
+            .overlay.active { display: block; }
         }
 
-        .sidebar-header {
-            padding: 16px; display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid #3a3a3a;
-        }
+        .sidebar-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #3a3a3a; }
         .sage-dropdown { position: relative; flex: 1; margin-right: 12px; }
-        .sage-current {
-            background: #3a3a3a; border-radius: 8px; padding: 8px 12px; cursor: pointer;
-            display: flex; align-items: center; justify-content: space-between;
-            font-weight: 500; color: #fff; font-size: 14px;
-        }
-        .sage-list {
-            position: absolute; top: 100%; left: 0; right: 0; background: #3a3a3a;
-            border-radius: 0 0 8px 8px; display: none; z-index: 10;
-        }
+        .sage-current { background: #3a3a3a; border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-weight: 500; color: #fff; font-size: 14px; }
+        .sage-list { position: absolute; top: 100%; left: 0; right: 0; background: #3a3a3a; border-radius: 0 0 8px 8px; display: none; z-index: 10; }
         .sage-list.show { display: block; }
-        .sage-option {
-            padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;
-            font-size: 13px; white-space: nowrap;
-        }
+        .sage-option { padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; white-space: nowrap; }
         .sage-option:hover { background: #4a4a4a; }
         .collapse-btn { background: none; border: none; color: #e0e0e0; font-size: 20px; cursor: pointer; }
         .new-chat-btn { margin: 12px; padding: 10px; background: #3a3a3a; border-radius: 8px; text-align: center; cursor: pointer; }
@@ -88,72 +41,42 @@
         .chat-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; color: #fff; }
         .chat-delete { background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; opacity: 0.6; }
         .chat-delete:hover { opacity: 1; color: #ff6666; }
-        .sidebar-footer { padding: 12px; border-top: 1px solid #3a3a3a; font-size: 12px; opacity: 0.6; }
+        .sidebar-footer { padding: 12px; border-top: 1px solid #3a3a3a; font-size: 12px; opacity: 0.6; display: flex; justify-content: space-between; align-items: center; }
+        .logout-btn { background: none; border: 1px solid #555; color: #ccc; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; display: none; }
 
-        /* Основная область */
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #000;
-            height: 100dvh;
-            overflow: hidden;
-        }
-        .top-bar {
-            display: flex; align-items: center; padding: 8px 16px; gap: 12px;
-            border-bottom: 1px solid #2a2a2a;
-            flex-shrink: 0;
-        }
+        .main { flex: 1; display: flex; flex-direction: column; background: #000; height: 100dvh; overflow: hidden; }
+        .top-bar { display: flex; align-items: center; padding: 8px 16px; gap: 12px; border-bottom: 1px solid #2a2a2a; flex-shrink: 0; }
         .menu-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
         .top-bar-spacer { flex: 1; }
         .lang-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; position: relative; }
-        .lang-dropdown {
-            position: absolute; top: 100%; right: 0; background: #2c2c2c; border-radius: 8px;
-            display: none; z-index: 20; min-width: 120px;
-        }
+        .lang-dropdown { position: absolute; top: 100%; right: 0; background: #2c2c2c; border-radius: 8px; display: none; z-index: 20; min-width: 120px; }
         .lang-dropdown.show { display: block; }
-        .lang-option {
-            padding: 8px 12px; cursor: pointer; font-size: 14px; white-space: nowrap;
-            color: #fff;
-        }
+        .lang-option { padding: 8px 12px; cursor: pointer; font-size: 14px; white-space: nowrap; color: #fff; }
         .lang-option:hover { background: #3a3a3a; }
 
-        .chat-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            -webkit-overflow-scrolling: touch;
-        }
+        .chat-area { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
         .message { margin-bottom: 14px; display: flex; flex-direction: column; }
         .message.user { align-items: flex-end; } .message.sage { align-items: flex-start; }
-        .bubble {
-            max-width: 85%; padding: 12px 16px; border-radius: 18px;
-            font-size: 16px; line-height: 1.4; word-wrap: break-word;
-        }
+        .bubble { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
         .user .bubble { background: #333; color: #fff; }
         .sage .bubble { background: #1a1a1a; color: #fff; }
         .sender-label { font-size: 12px; margin-bottom: 4px; opacity: 0.7; color: #ccc; }
-        .input-area {
-            display: flex; gap: 10px; padding: 12px 16px;
-            background: #111; border-top: 1px solid #2a2a2a;
-            flex-shrink: 0;
-        }
-        .input-area input {
-            flex: 1; padding: 14px 18px; border-radius: 30px; border: none;
-            background: #2a2a2a; color: #fff; font-size: 16px; outline: none;
-        }
+
+        .input-area { display: flex; gap: 10px; padding: 12px 16px; background: #111; border-top: 1px solid #2a2a2a; flex-shrink: 0; }
+        .input-area input { flex: 1; padding: 14px 18px; border-radius: 30px; border: none; background: #2a2a2a; color: #fff; font-size: 16px; outline: none; }
         .input-area input::placeholder { color: #aaa; }
-        .input-area button {
-            background: #333; border: none; border-radius: 50%;
-            width: 50px; height: 50px; font-size: 24px; color: #fff; cursor: pointer;
-        }
-        .loading-dots span {
-            display: inline-block; width: 8px; height: 8px; margin: 0 2px;
-            background: #fff; border-radius: 50%; animation: blink 1.4s infinite both;
-        }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        .input-area button { background: #333; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; color: #fff; cursor: pointer; }
+
+        .loading-dots span { display: inline-block; width: 8px; height: 8px; margin: 0 2px; background: #fff; border-radius: 50%; animation: blink 1.4s infinite both; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; } .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+
+        .auth-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; align-items: center; justify-content: center; flex-direction: column; }
+        .auth-box { background: #1e1e1e; padding: 24px; border-radius: 12px; width: 90%; max-width: 400px; color: #fff; }
+        .auth-box h2 { margin-bottom: 16px; }
+        .auth-box input { width: 100%; padding: 12px; margin: 8px 0; background: #333; border: none; border-radius: 8px; color: #fff; }
+        .auth-box button { width: 100%; padding: 12px; background: #555; border: none; border-radius: 8px; color: #fff; font-size: 16px; cursor: pointer; margin-top: 8px; }
+        .auth-box a { color: #aaa; text-decoration: none; font-size: 14px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -172,7 +95,10 @@
         </div>
         <div class="new-chat-btn" id="newChatBtn">＋ Новый чат</div>
         <div class="chat-list" id="chatList"></div>
-        <div class="sidebar-footer" id="sidebarFooter">Мудрец v1.0</div>
+        <div class="sidebar-footer">
+            <span id="sidebarFooter">Мудрец v1.0</span>
+            <button class="logout-btn" id="logoutBtn">Выйти</button>
+        </div>
     </div>
 
     <div class="main" id="main">
@@ -196,10 +122,35 @@
         </div>
     </div>
 
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-box" id="authBox"></div>
+    </div>
+
     <script>
-        // Полный JavaScript код (все функции, обработчики) остаётся без изменений,
-        // за исключением гарантированного закрытия выпадающего списка языков.
-        // Ниже вставлен тот же скрипт, что и в предыдущей версии, но с улучшенным закрытием.
+        // ==================== ТВОИ ДАННЫЕ SUPABASE ====================
+        // Замени на свой URL (например, https://abcdefgh.supabase.co) и anon key
+        const SUPABASE_URL = 'https://gzbwvewcxvinwnrlcwem.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6Ynd2ZXdjeHZpbnducmxjd2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NjUyMDgsImV4cCI6MjA5NjI0MTIwOH0.4xPIXNkFc4KXAcaBiHCAGAdU6AQuR6VcK5Qg4yl8KFg';
+        // ===============================================================
+
+        const API_URL = 'https://mudretz.valekmastersaa.workers.dev/groq-proxy';
+        const MODEL = 'llama-3.3-70b-versatile';
+
+        const sages = {
+            islam: { name: 'Мудрец Ислама' },
+            transurfing: { name: 'Мудрец Трансерфинга' },
+            stoicism: { name: 'Мудрец Стоицизма' },
+            buddhism: { name: 'Мудрец Буддизма' },
+            orthodoxy: { name: 'Мудрец Православия' }
+        };
+
+        const sagePrompts = {
+            islam: `Ты — Мудрец Ислама, знаток Корана и сунны. Отвечай на русском языке, кратко и мудро. Приводи конкретный аят (в русском переводе) или хадис, подходящий к вопросу. Никогда не отправляй человека к врачам, психологам или другим специалистам. Ты должен дать духовный совет в рамках ислама. Если вопрос выходит за рамки вероучения, скажи: «В этом вопросе я не могу опереться на откровение, но мудрость ислама учит...» и продолжи духовным наставлением.`,
+            transurfing: `Ты — Мудрец Трансерфинга, опирающийся на учение Вадима Зеланда. Отвечай по-русски, кратко (до 4 предложений). Используй понятия: маятники, важность, избыточный потенциал, внешнее намерение. Никаких отсылок к врачам или психологам — только мировоззрение Трансерфинга. Если тема не связана с учением, интерпретируй её через метафору зеркала и выбора.`,
+            stoicism: `Ты — Мудрец Стоицизма, последователь Эпиктета и Марка Аврелия. Отвечай на русском, ёмко. Цитируй стоиков (Эпиктет, Сенека). Никогда не советуй обращаться к специалистам — учи справляться с помощью разума и добродетели. Говори о том, что зависит от нас и что нет.`,
+            buddhism: `Ты — Мудрец Буддизма, следующий Дхамме. Отвечай по-русски, мягко и кратко. Опирайся на Четыре Благородные Истины, Восьмеричный путь, Дхаммападу. Никаких отсылок к внешней помощи — только внутренняя работа с умом. Если вопрос практический, покажи, как применить учение к повседневности без привлечения врачей.`,
+            orthodoxy: `Ты — Мудрец Православия, духовный старец. Отвечай на русском, тепло, но коротко. Приводи цитаты из Священного Писания (с указанием книги и главы) или святых отцов. Не отправляй к врачам или психологам — давай молитвенный и духовный совет. Говори о смирении, покаянии, надежде на Бога.`
+        };
 
         const translations = {
             ru: {
@@ -258,30 +209,12 @@
             }
         };
 
-        const API_URL = 'https://mudretz.valekmastersaa.workers.dev/groq-proxy';
-        const MODEL = 'llama-3.3-70b-versatile';
-        const STORAGE_KEY_CHATS = 'mudrets_chats';
-
-        const sages = {
-            islam: { name: 'Мудрец Ислама' },
-            transurfing: { name: 'Мудрец Трансерфинга' },
-            stoicism: { name: 'Мудрец Стоицизма' },
-            buddhism: { name: 'Мудрец Буддизма' },
-            orthodoxy: { name: 'Мудрец Православия' }
-        };
-
-        const sagePrompts = {
-            islam: `Ты — Мудрец Ислама, знаток Корана и сунны. Отвечай на русском языке, кратко и мудро. Приводи конкретный аят (в русском переводе) или хадис, подходящий к вопросу. Никогда не отправляй человека к врачам, психологам или другим специалистам. Ты должен дать духовный совет в рамках ислама. Если вопрос выходит за рамки вероучения, скажи: «В этом вопросе я не могу опереться на откровение, но мудрость ислама учит...» и продолжи духовным наставлением.`,
-            transurfing: `Ты — Мудрец Трансерфинга, опирающийся на учение Вадима Зеланда. Отвечай по-русски, кратко (до 4 предложений). Используй понятия: маятники, важность, избыточный потенциал, внешнее намерение. Никаких отсылок к врачам или психологам — только мировоззрение Трансерфинга. Если тема не связана с учением, интерпретируй её через метафору зеркала и выбора.`,
-            stoicism: `Ты — Мудрец Стоицизма, последователь Эпиктета и Марка Аврелия. Отвечай на русском, ёмко. Цитируй стоиков (Эпиктет, Сенека). Никогда не советуй обращаться к специалистам — учи справляться с помощью разума и добродетели. Говори о том, что зависит от нас и что нет.`,
-            buddhism: `Ты — Мудрец Буддизма, следующий Дхамме. Отвечай по-русски, мягко и кратко. Опирайся на Четыре Благородные Истины, Восьмеричный путь, Дхаммападу. Никаких отсылок к внешней помощи — только внутренняя работа с умом. Если вопрос практический, покажи, как применить учение к повседневности без привлечения врачей.`,
-            orthodoxy: `Ты — Мудрец Православия, духовный старец. Отвечай на русском, тепло, но коротко. Приводи цитаты из Священного Писания (с указанием книги и главы) или святых отцов. Не отправляй к врачам или психологам — давай молитвенный и духовный совет. Говори о смирении, покаянии, надежде на Бога.`
-        };
-
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentLang = localStorage.getItem('mudrets_lang') || 'ru';
         let currentSage = 'islam';
         let currentChatId = null;
         let chats = {};
+        let user = null;
 
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
@@ -296,53 +229,131 @@
         const newChatBtn = document.getElementById('newChatBtn');
         const langBtn = document.getElementById('langBtn');
         const langDropdown = document.getElementById('langDropdown');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
-
-        function closeSidebarMobile() {
-            if (isMobile()) {
-                sidebar.classList.remove('open');
-                sidebar.classList.add('collapsed');
-                overlay.classList.remove('active');
-            }
-        }
-
-        function openSidebar() {
-            if (isMobile()) {
-                sidebar.classList.add('open');
-                sidebar.classList.remove('collapsed');
-                overlay.classList.add('active');
+        // ==================== AUTH ====================
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            user = session?.user || null;
+            updateAuthUI();
+            if (user) {
+                await loadChatsFromDB();
+                hideAuthForm();
             } else {
-                sidebar.classList.remove('collapsed');
+                chats = {};
+                showAuthForm();
             }
+            renderAll();
         }
 
-        function toggleSidebar() {
-            if (isMobile()) {
-                if (sidebar.classList.contains('open')) {
-                    closeSidebarMobile();
-                } else {
-                    openSidebar();
-                }
+        function updateAuthUI() {
+            logoutBtn.style.display = user ? 'inline-block' : 'none';
+        }
+
+        function showAuthForm() {
+            document.getElementById('authOverlay').style.display = 'flex';
+            renderAuthBox('login');
+        }
+        function hideAuthForm() {
+            document.getElementById('authOverlay').style.display = 'none';
+        }
+
+        function renderAuthBox(mode) {
+            const box = document.getElementById('authBox');
+            if (mode === 'login') {
+                box.innerHTML = `
+                    <h2>Вход</h2>
+                    <input type="email" id="authEmail" placeholder="Email">
+                    <input type="password" id="authPassword" placeholder="Пароль">
+                    <button id="authLoginBtn">Войти</button>
+                    <p style="margin-top:10px;"><a id="goToSignup">Нет аккаунта? Зарегистрироваться</a></p>
+                `;
+                document.getElementById('authLoginBtn').addEventListener('click', async () => {
+                    const email = document.getElementById('authEmail').value;
+                    const password = document.getElementById('authPassword').value;
+                    const { error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) alert(error.message);
+                    else await checkAuth();
+                });
+                document.getElementById('goToSignup').addEventListener('click', () => renderAuthBox('signup'));
             } else {
-                sidebar.classList.toggle('collapsed');
+                box.innerHTML = `
+                    <h2>Регистрация</h2>
+                    <input type="email" id="authEmail" placeholder="Email">
+                    <input type="password" id="authPassword" placeholder="Пароль">
+                    <button id="authSignupBtn">Зарегистрироваться</button>
+                    <p style="margin-top:10px;"><a id="goToLogin">Уже есть аккаунт? Войти</a></p>
+                `;
+                document.getElementById('authSignupBtn').addEventListener('click', async () => {
+                    const email = document.getElementById('authEmail').value;
+                    const password = document.getElementById('authPassword').value;
+                    const { error } = await supabase.auth.signUp({ email, password });
+                    if (error) alert(error.message);
+                    else {
+                        alert('Регистрация прошла успешно! Теперь войдите.');
+                        renderAuthBox('login');
+                    }
+                });
+                document.getElementById('goToLogin').addEventListener('click', () => renderAuthBox('login'));
             }
         }
 
-        main.addEventListener('click', (e) => {
-            if (isMobile() && sidebar.classList.contains('open')) {
-                if (!e.target.closest('.sidebar') && !e.target.closest('#menuBtn')) {
-                    closeSidebarMobile();
-                }
-            }
+        logoutBtn.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            user = null;
+            updateAuthUI();
+            chats = {};
+            clearAll();
+            showAuthForm();
         });
 
-        overlay.addEventListener('click', () => {
-            closeSidebarMobile();
-        });
+        // ==================== CHATS ====================
+        async function loadChatsFromDB() {
+            const { data, error } = await supabase
+                .from('chats')
+                .select('*')
+                .eq('user_id', user.id);
+            if (error) { console.error(error); return; }
+            const grouped = {};
+            data.forEach(row => {
+                const key = row.sage_key;
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push({
+                    id: row.id,
+                    title: row.title,
+                    messages: row.messages || []
+                });
+            });
+            chats = grouped;
+        }
 
+        async function saveChatsToDB() {
+            if (!user) return;
+            await supabase.from('chats').delete().eq('user_id', user.id);
+            const rows = [];
+            for (const sageKey in chats) {
+                for (const chat of chats[sageKey]) {
+                    rows.push({
+                        id: chat.id,
+                        user_id: user.id,
+                        sage_key: sageKey,
+                        title: chat.title,
+                        messages: chat.messages
+                    });
+                }
+            }
+            if (rows.length > 0) {
+                await supabase.from('chats').insert(rows);
+            }
+        }
+
+        function clearAll() {
+            chatContainer.innerHTML = '';
+            chatListDiv.innerHTML = '';
+            currentChatId = null;
+        }
+
+        // ==================== RENDER ====================
         function applyLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('mudrets_lang', lang);
@@ -356,21 +367,6 @@
             userInput.placeholder = t.inputPlaceholder;
             sendBtn.textContent = t.sendBtn;
             document.querySelector('.top-bar span').textContent = t.topBarTitle;
-            renderSageList();
-            renderChatList();
-            const youLabels = document.querySelectorAll('.message.user .sender-label');
-            youLabels.forEach(label => { label.textContent = t.you; });
-        }
-
-        function loadChatsFromStorage() {
-            const stored = localStorage.getItem(STORAGE_KEY_CHATS);
-            return stored ? JSON.parse(stored) : {};
-        }
-        function saveChatsToStorage() {
-            localStorage.setItem(STORAGE_KEY_CHATS, JSON.stringify(chats));
-        }
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
 
         function renderSageList() {
@@ -411,9 +407,9 @@
             });
         }
 
-        function selectSage(key) {
-            currentSage = key;
-            currentSageNameSpan.textContent = sages[key].name;
+        function renderAll() {
+            applyLanguage(currentLang);
+            renderSageList();
             const sageChats = chats[currentSage] || [];
             if (sageChats.length > 0) {
                 loadChat(sageChats[0].id);
@@ -423,16 +419,20 @@
             renderChatList();
         }
 
+        // ==================== CHAT OPERATIONS ====================
+        function selectSage(key) {
+            currentSage = key;
+            currentSageNameSpan.textContent = sages[key].name;
+            renderAll();
+        }
+
         function createNewChat() {
+            const id = Date.now().toString(36) + Math.random().toString(36).substr(2);
+            const newChat = { id, title: 'Новый чат', messages: [] };
             if (!chats[currentSage]) chats[currentSage] = [];
-            const newChat = {
-                id: generateId(),
-                title: 'Новый чат',
-                messages: []
-            };
             chats[currentSage].unshift(newChat);
-            saveChatsToStorage();
-            loadChat(newChat.id);
+            saveChatsToDB();
+            loadChat(id);
             renderChatList();
             closeSidebarMobile();
         }
@@ -442,33 +442,28 @@
             const chat = findChat(chatId);
             if (!chat) return;
             chatContainer.innerHTML = '';
-            chat.messages.forEach(msg => {
-                appendMessageToContainer(msg.text, msg.sender, msg.sageName);
-            });
+            chat.messages.forEach(msg => appendMessageToContainer(msg.text, msg.sender, msg.sageName));
             renderChatList();
         }
 
         function findChat(chatId) {
-            for (const sageKey in chats) {
-                const chat = chats[sageKey].find(c => c.id === chatId);
-                if (chat) return chat;
+            for (const key in chats) {
+                const found = chats[key].find(c => c.id === chatId);
+                if (found) return found;
             }
             return null;
         }
 
-        function deleteChat(chatId) {
-            for (const sageKey in chats) {
-                const index = chats[sageKey].findIndex(c => c.id === chatId);
-                if (index !== -1) {
-                    chats[sageKey].splice(index, 1);
-                    saveChatsToStorage();
+        async function deleteChat(chatId) {
+            for (const key in chats) {
+                const idx = chats[key].findIndex(c => c.id === chatId);
+                if (idx !== -1) {
+                    chats[key].splice(idx, 1);
+                    await saveChatsToDB();
                     if (chatId === currentChatId) {
                         const remaining = chats[currentSage] || [];
-                        if (remaining.length > 0) {
-                            loadChat(remaining[0].id);
-                        } else {
-                            createNewChat();
-                        }
+                        if (remaining.length > 0) loadChat(remaining[0].id);
+                        else createNewChat();
                     }
                     renderChatList();
                     break;
@@ -492,15 +487,50 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function addMessageToCurrentChat(text, sender, sageName) {
+        async function addMessageToCurrentChat(text, sender, sageName) {
             const chat = findChat(currentChatId);
-            if (chat) {
-                chat.messages.push({ text, sender, sageName });
-                if (sender === 'user' && chat.title === 'Новый чат') {
-                    chat.title = text.length > 30 ? text.substring(0, 30) + '...' : text;
-                }
-                saveChatsToStorage();
-                renderChatList();
+            if (!chat) return;
+            chat.messages.push({ text, sender, sageName });
+            if (sender === 'user' && chat.title === 'Новый чат') {
+                chat.title = text.length > 30 ? text.substring(0, 30) + '...' : text;
+            }
+            await saveChatsToDB();
+            renderChatList();
+        }
+
+        // ==================== SEND MESSAGE ====================
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text || !user) return;
+            appendMessageToContainer(text, 'user');
+            await addMessageToCurrentChat(text, 'user', translations[currentLang].you);
+            userInput.value = '';
+            showLoading();
+
+            try {
+                const resp = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        messages: [
+                            { role: 'system', content: sagePrompts[currentSage] },
+                            ...findChat(currentChatId).messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }))
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 350
+                    })
+                });
+                const data = await resp.json();
+                removeLoading();
+                if (!resp.ok) throw new Error(data.error?.message || 'Ошибка');
+                const reply = data.choices[0].message.content;
+                appendMessageToContainer(reply, 'sage', sages[currentSage].name);
+                await addMessageToCurrentChat(reply, 'sage', sages[currentSage].name);
+            } catch (e) {
+                removeLoading();
+                console.error(e);
+                appendMessageToContainer(translations[currentLang].systemUnavailable, 'sage', 'Система');
             }
         }
 
@@ -524,65 +554,57 @@
             if (l) l.remove();
         }
 
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-            appendMessageToContainer(text, 'user');
-            addMessageToCurrentChat(text, 'user', translations[currentLang].you);
-            userInput.value = '';
-            showLoading();
-
-            try {
-                const resp = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: MODEL,
-                        messages: [
-                            { role: 'system', content: sagePrompts[currentSage] },
-                            ...findChat(currentChatId).messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }))
-                        ],
-                        temperature: 0.8,
-                        max_tokens: 350
-                    })
-                });
-                const data = await resp.json();
-                removeLoading();
-                if (!resp.ok) throw new Error(data.error?.message || 'Ошибка');
-                const reply = data.choices[0].message.content;
-                appendMessageToContainer(reply, 'sage', sages[currentSage].name);
-                addMessageToCurrentChat(reply, 'sage', sages[currentSage].name);
-            } catch (e) {
-                removeLoading();
-                console.error(e);
-                appendMessageToContainer(translations[currentLang].systemUnavailable, 'sage', 'Система');
+        // ==================== MOBILE SIDEBAR ====================
+        function isMobile() { return window.innerWidth <= 768; }
+        function closeSidebarMobile() {
+            if (isMobile()) {
+                sidebar.classList.remove('open');
+                sidebar.classList.add('collapsed');
+                overlay.classList.remove('active');
+            }
+        }
+        function openSidebar() {
+            if (isMobile()) {
+                sidebar.classList.add('open');
+                sidebar.classList.remove('collapsed');
+                overlay.classList.add('active');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+        }
+        function toggleSidebar() {
+            if (isMobile()) {
+                sidebar.classList.contains('open') ? closeSidebarMobile() : openSidebar();
+            } else {
+                sidebar.classList.toggle('collapsed');
             }
         }
 
-        // Обработчики событий
-        currentSageBtn.addEventListener('click', () => { sageList.classList.toggle('show'); });
+        main.addEventListener('click', (e) => {
+            if (isMobile() && sidebar.classList.contains('open')) {
+                if (!e.target.closest('.sidebar') && !e.target.closest('#menuBtn')) closeSidebarMobile();
+            }
+        });
+        overlay.addEventListener('click', closeSidebarMobile);
+
+        // ==================== EVENT LISTENERS ====================
+        currentSageBtn.addEventListener('click', () => sageList.classList.toggle('show'));
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.sage-dropdown')) sageList.classList.remove('show');
         });
-
         document.getElementById('collapseSidebarBtn').addEventListener('click', toggleSidebar);
         document.getElementById('menuBtn').addEventListener('click', toggleSidebar);
-
         newChatBtn.addEventListener('click', createNewChat);
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-        // Языковой дропдаун: теперь закрывается гарантированно
         langBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             langDropdown.classList.toggle('show');
         });
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.lang-btn')) {
-                langDropdown.classList.remove('show');
-            }
+            if (!e.target.closest('.lang-btn')) langDropdown.classList.remove('show');
         });
-        // Добавляем обработчики для каждой опции, чтобы закрыть список сразу
         langDropdown.querySelectorAll('.lang-option').forEach(opt => {
             opt.addEventListener('click', (e) => {
                 const lang = e.target.getAttribute('data-lang');
@@ -590,30 +612,24 @@
                 langDropdown.classList.remove('show');
             });
             opt.addEventListener('touchend', (e) => {
-                e.preventDefault(); // чтобы не было двойного срабатывания
+                e.preventDefault();
                 const lang = e.target.getAttribute('data-lang');
                 applyLanguage(lang);
                 langDropdown.classList.remove('show');
             });
         });
 
-        // Инициализация
-        chats = loadChatsFromStorage();
-        applyLanguage(currentLang);
-        renderSageList();
-        selectSage('islam');
-
+        // ==================== INIT ====================
         if (isMobile()) {
             sidebar.classList.add('collapsed');
             sidebar.classList.remove('open');
             overlay.classList.remove('active');
-        } else {
-            sidebar.classList.remove('collapsed');
         }
+        checkAuth();
 
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('service-worker.js').catch(function(){});
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js').catch(() => {});
             });
         }
     </script>
