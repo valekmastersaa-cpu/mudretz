@@ -50,6 +50,17 @@
         .main { flex: 1; display: flex; flex-direction: column; transition: background 0.3s; }
         .top-bar { display: flex; align-items: center; padding: 8px 16px; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .menu-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+        .top-bar-spacer { flex: 1; }
+        .lang-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; position: relative; }
+        .lang-dropdown {
+            position: absolute; top: 100%; right: 0; background: #1b2a3a; border-radius: 8px;
+            display: none; z-index: 20; min-width: 120px;
+        }
+        .lang-dropdown.show { display: block; }
+        .lang-option {
+            padding: 8px 12px; cursor: pointer; font-size: 14px; white-space: nowrap;
+        }
+        .lang-option:hover { background: #2a3a4a; }
         .chat-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 16px; }
         .message { margin-bottom: 14px; display: flex; flex-direction: column; }
         .message.user { align-items: flex-end; } .message.sage { align-items: flex-start; }
@@ -84,12 +95,21 @@
         </div>
         <div class="new-chat-btn" id="newChatBtn">＋ Новый чат</div>
         <div class="chat-list" id="chatList"></div>
-        <div class="sidebar-footer">Мудрец v0.7</div>
+        <div class="sidebar-footer" id="sidebarFooter">Мудрец v0.8</div>
     </div>
     <div class="main" id="main">
         <div class="top-bar">
             <button class="menu-btn" id="menuBtn">☰</button>
             <span style="font-weight:500;">🌿 Мудрец</span>
+            <div class="top-bar-spacer"></div>
+            <div class="lang-btn" id="langBtn">
+                🌐
+                <div class="lang-dropdown" id="langDropdown">
+                    <div class="lang-option" data-lang="ru">Русский</div>
+                    <div class="lang-option" data-lang="en">English</div>
+                    <div class="lang-option" data-lang="kk">Қазақша</div>
+                </div>
+            </div>
         </div>
         <div class="chat-area" id="chatContainer"></div>
         <div class="input-area">
@@ -99,20 +119,111 @@
     </div>
     <div class="modal-overlay" id="keyModal">
         <div class="modal-box">
-            <h2>🔑 Введите ключ Groq API</h2>
-            <p style="font-size:13px; opacity:0.8; margin-bottom:12px;">Он сохранится только на этом устройстве и не попадёт в сеть.</p>
+            <h2 id="keyModalTitle">🔑 Введите ключ Groq API</h2>
+            <p style="font-size:13px; opacity:0.8; margin-bottom:12px;" id="keyModalDesc">Он сохранится только на этом устройстве и не попадёт в сеть.</p>
             <input type="password" id="apiKeyInput" placeholder="gsk_...">
             <br>
             <button id="saveKeyBtn">Сохранить</button>
         </div>
     </div>
     <script>
+        // ==================== ПЕРЕВОДЫ ====================
+        const translations = {
+            ru: {
+                sageNames: {
+                    islam: 'Мудрец Ислама',
+                    transurfing: 'Мудрец Трансерфинга',
+                    stoicism: 'Мудрец Стоицизма',
+                    buddhism: 'Мудрец Буддизма',
+                    orthodoxy: 'Мудрец Православия'
+                },
+                newChat: '＋ Новый чат',
+                footer: 'Мудрец v0.8',
+                inputPlaceholder: 'Задай вопрос мудрецу...',
+                sendBtn: '➤',
+                keyModalTitle: '🔑 Введите ключ Groq API',
+                keyModalDesc: 'Он сохранится только на этом устройстве и не попадёт в сеть.',
+                saveKey: 'Сохранить',
+                systemUnavailable: '⚠️ Мудрец временно недоступен. Проверьте ключ или интернет.',
+                you: 'Вы',
+                newChatDefault: 'Новый чат',
+                topBarTitle: '🌿 Мудрец',
+                systemSelectSage: 'Вы говорите с '
+            },
+            en: {
+                sageNames: {
+                    islam: 'Sage of Islam',
+                    transurfing: 'Sage of Transurfing',
+                    stoicism: 'Sage of Stoicism',
+                    buddhism: 'Sage of Buddhism',
+                    orthodoxy: 'Sage of Orthodoxy'
+                },
+                newChat: '＋ New Chat',
+                footer: 'Sage v0.8',
+                inputPlaceholder: 'Ask the sage...',
+                sendBtn: '➤',
+                keyModalTitle: '🔑 Enter Groq API Key',
+                keyModalDesc: 'It will be stored only on this device and never sent anywhere.',
+                saveKey: 'Save',
+                systemUnavailable: '⚠️ The sage is temporarily unavailable. Check your key or internet.',
+                you: 'You',
+                newChatDefault: 'New Chat',
+                topBarTitle: '🌿 Sage',
+                systemSelectSage: 'You are speaking with '
+            },
+            kk: {
+                sageNames: {
+                    islam: 'Ислам данышпаны',
+                    transurfing: 'Трансерфинг данышпаны',
+                    stoicism: 'Стоицизм данышпаны',
+                    buddhism: 'Буддизм данышпаны',
+                    orthodoxy: 'Православие данышпаны'
+                },
+                newChat: '＋ Жаңа чат',
+                footer: 'Данышпан v0.8',
+                inputPlaceholder: 'Данышпанға сұрақ қойыңыз...',
+                sendBtn: '➤',
+                keyModalTitle: '🔑 Groq API кілтін енгізіңіз',
+                keyModalDesc: 'Ол тек осы құрылғыда сақталады және желіге жіберілмейді.',
+                saveKey: 'Сақтау',
+                systemUnavailable: '⚠️ Данышпан уақытша қолжетімсіз. Кілтті немесе интернетті тексеріңіз.',
+                you: 'Сіз',
+                newChatDefault: 'Жаңа чат',
+                topBarTitle: '🌿 Данышпан',
+                systemSelectSage: 'Сіз сөйлесіп тұрған: '
+            }
+        };
+
+        let currentLang = localStorage.getItem('mudrets_lang') || 'ru';
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('mudrets_lang', lang);
+            const t = translations[lang];
+            for (const key in sages) {
+                sages[key].name = t.sageNames[key];
+            }
+            currentSageNameSpan.textContent = sages[currentSage].name;
+            newChatBtn.textContent = t.newChat;
+            document.getElementById('sidebarFooter').textContent = t.footer;
+            userInput.placeholder = t.inputPlaceholder;
+            sendBtn.textContent = t.sendBtn;
+            document.getElementById('keyModalTitle').textContent = t.keyModalTitle;
+            document.getElementById('keyModalDesc').textContent = t.keyModalDesc;
+            saveKeyBtn.textContent = t.saveKey;
+            document.querySelector('.top-bar span').textContent = t.topBarTitle;
+            renderSageList();
+            renderChatList();
+            const youLabels = document.querySelectorAll('.message.user .sender-label');
+            youLabels.forEach(label => { label.textContent = t.you; });
+        }
+
+        // ==================== НАСТРОЙКИ ====================
         const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
         const MODEL = 'llama-3.3-70b-versatile';
         const STORAGE_KEY_API = 'mudrets_groq_key';
         const STORAGE_KEY_CHATS = 'mudrets_chats';
 
-        // Цвета: основной фон, облачко пользователя (и кнопка), облачко мудреца, цвет текста пользователя, цвет текста мудреца
         const sages = {
             islam: { name: 'Мудрец Ислама', bg: '#9eff85', userBubble: '#76b366', sageBubble: '#E5FFE5', userText: '#000', sageText: '#000' },
             transurfing: { name: 'Мудрец Трансерфинга', bg: '#ff5b3a', userBubble: '#ff8969', sageBubble: '#ffd9cb', userText: '#000', sageText: '#000' },
@@ -146,6 +257,8 @@
         const keyModal = document.getElementById('keyModal');
         const apiKeyInput = document.getElementById('apiKeyInput');
         const saveKeyBtn = document.getElementById('saveKeyBtn');
+        const langBtn = document.getElementById('langBtn');
+        const langDropdown = document.getElementById('langDropdown');
 
         function loadChatsFromStorage() {
             const stored = localStorage.getItem(STORAGE_KEY_CHATS);
@@ -178,11 +291,12 @@
         function renderChatList() {
             chatListDiv.innerHTML = '';
             const sageChats = chats[currentSage] || [];
+            const t = translations[currentLang];
             sageChats.forEach(chat => {
                 const item = document.createElement('div');
                 item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
                 item.innerHTML = `
-                    <span class="chat-title">${chat.title || 'Новый чат'}</span>
+                    <span class="chat-title">${chat.title || t.newChatDefault}</span>
                     <button class="chat-delete" data-chatid="${chat.id}">🗑</button>
                 `;
                 item.querySelector('.chat-title').addEventListener('click', () => loadChat(chat.id));
@@ -265,11 +379,12 @@
         }
 
         function appendMessageToContainer(text, sender, sageName = '') {
+            const t = translations[currentLang];
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender === 'user' ? 'user' : 'sage');
             const label = document.createElement('div');
             label.classList.add('sender-label');
-            label.textContent = sender === 'user' ? 'Вы' : (sageName || 'Мудрец');
+            label.textContent = sender === 'user' ? t.you : (sageName || 'Мудрец');
             const bubble = document.createElement('div');
             bubble.classList.add('bubble');
             bubble.textContent = text;
@@ -320,7 +435,7 @@
                 return;
             }
             appendMessageToContainer(text, 'user');
-            addMessageToCurrentChat(text, 'user', 'Вы');
+            addMessageToCurrentChat(text, 'user', translations[currentLang].you);
             userInput.value = '';
             showLoading();
 
@@ -350,30 +465,36 @@
             } catch (e) {
                 removeLoading();
                 console.error(e);
-                appendMessageToContainer('⚠️ Мудрец временно недоступен. Проверьте ключ или интернет.', 'sage', 'Система');
+                appendMessageToContainer(translations[currentLang].systemUnavailable, 'sage', 'Система');
             }
         }
 
-        currentSageBtn.addEventListener('click', () => {
-            sageList.classList.toggle('show');
-        });
+        // Обработчики событий
+        currentSageBtn.addEventListener('click', () => { sageList.classList.toggle('show'); });
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.sage-dropdown')) {
-                sageList.classList.remove('show');
-            }
+            if (!e.target.closest('.sage-dropdown')) sageList.classList.remove('show');
         });
 
-        document.getElementById('collapseSidebarBtn').addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-        });
-        document.getElementById('menuBtn').addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-        });
+        document.getElementById('collapseSidebarBtn').addEventListener('click', () => { sidebar.classList.toggle('collapsed'); });
+        document.getElementById('menuBtn').addEventListener('click', () => { sidebar.classList.toggle('collapsed'); });
 
         newChatBtn.addEventListener('click', createNewChat);
         sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
+        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langDropdown.classList.toggle('show');
+        });
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.lang-btn')) langDropdown.classList.remove('show');
+        });
+        langDropdown.querySelectorAll('.lang-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                const lang = e.target.getAttribute('data-lang');
+                applyLanguage(lang);
+                langDropdown.classList.remove('show');
+            });
         });
 
         if (getApiKey()) {
@@ -389,7 +510,9 @@
             }
         });
 
+        // Инициализация
         chats = loadChatsFromStorage();
+        applyLanguage(currentLang);
         renderSageList();
         selectSage('islam');
 
