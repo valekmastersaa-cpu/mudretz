@@ -74,11 +74,6 @@
         .loading-dots span { display: inline-block; width: 8px; height: 8px; margin: 0 2px; background: #ffd966; border-radius: 50%; animation: blink 1.4s infinite both; }
         .loading-dots span:nth-child(2) { animation-delay: 0.2s; } .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
-        .modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-box { background: #1b2a3a; border: 1px solid #ffd966; border-radius: 20px; padding: 24px; max-width: 400px; width: 90%; color: #fff; text-align: center; }
-        .modal-box h2 { margin-bottom: 12px; color: #ffd966; }
-        .modal-box input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin-bottom: 12px; font-size: 14px; background: rgba(255,255,255,0.15); color: #fff; outline: none; }
-        .modal-box button { background: #ffd966; border: none; padding: 10px 24px; border-radius: 20px; font-size: 16px; font-weight: bold; cursor: pointer; color: #0d1b2a; }
     </style>
 </head>
 <body>
@@ -95,7 +90,7 @@
         </div>
         <div class="new-chat-btn" id="newChatBtn">＋ Новый чат</div>
         <div class="chat-list" id="chatList"></div>
-        <div class="sidebar-footer" id="sidebarFooter">Мудрец v0.8</div>
+        <div class="sidebar-footer" id="sidebarFooter">Мудрец v1.0</div>
     </div>
     <div class="main" id="main">
         <div class="top-bar">
@@ -117,15 +112,6 @@
             <button id="sendBtn">➤</button>
         </div>
     </div>
-    <div class="modal-overlay" id="keyModal">
-        <div class="modal-box">
-            <h2 id="keyModalTitle">🔑 Введите ключ Groq API</h2>
-            <p style="font-size:13px; opacity:0.8; margin-bottom:12px;" id="keyModalDesc">Он сохранится только на этом устройстве и не попадёт в сеть.</p>
-            <input type="password" id="apiKeyInput" placeholder="gsk_...">
-            <br>
-            <button id="saveKeyBtn">Сохранить</button>
-        </div>
-    </div>
     <script>
         // ==================== ПЕРЕВОДЫ ====================
         const translations = {
@@ -138,12 +124,9 @@
                     orthodoxy: 'Мудрец Православия'
                 },
                 newChat: '＋ Новый чат',
-                footer: 'Мудрец v0.8',
+                footer: 'Мудрец v1.0',
                 inputPlaceholder: 'Задай вопрос мудрецу...',
                 sendBtn: '➤',
-                keyModalTitle: '🔑 Введите ключ Groq API',
-                keyModalDesc: 'Он сохранится только на этом устройстве и не попадёт в сеть.',
-                saveKey: 'Сохранить',
                 systemUnavailable: '⚠️ Мудрец временно недоступен. Проверьте ключ или интернет.',
                 you: 'Вы',
                 newChatDefault: 'Новый чат',
@@ -159,12 +142,9 @@
                     orthodoxy: 'Sage of Orthodoxy'
                 },
                 newChat: '＋ New Chat',
-                footer: 'Sage v0.8',
+                footer: 'Sage v1.0',
                 inputPlaceholder: 'Ask the sage...',
                 sendBtn: '➤',
-                keyModalTitle: '🔑 Enter Groq API Key',
-                keyModalDesc: 'It will be stored only on this device and never sent anywhere.',
-                saveKey: 'Save',
                 systemUnavailable: '⚠️ The sage is temporarily unavailable. Check your key or internet.',
                 you: 'You',
                 newChatDefault: 'New Chat',
@@ -180,12 +160,9 @@
                     orthodoxy: 'Православие данышпаны'
                 },
                 newChat: '＋ Жаңа чат',
-                footer: 'Данышпан v0.8',
+                footer: 'Данышпан v1.0',
                 inputPlaceholder: 'Данышпанға сұрақ қойыңыз...',
                 sendBtn: '➤',
-                keyModalTitle: '🔑 Groq API кілтін енгізіңіз',
-                keyModalDesc: 'Ол тек осы құрылғыда сақталады және желіге жіберілмейді.',
-                saveKey: 'Сақтау',
                 systemUnavailable: '⚠️ Данышпан уақытша қолжетімсіз. Кілтті немесе интернетті тексеріңіз.',
                 you: 'Сіз',
                 newChatDefault: 'Жаңа чат',
@@ -208,9 +185,6 @@
             document.getElementById('sidebarFooter').textContent = t.footer;
             userInput.placeholder = t.inputPlaceholder;
             sendBtn.textContent = t.sendBtn;
-            document.getElementById('keyModalTitle').textContent = t.keyModalTitle;
-            document.getElementById('keyModalDesc').textContent = t.keyModalDesc;
-            saveKeyBtn.textContent = t.saveKey;
             document.querySelector('.top-bar span').textContent = t.topBarTitle;
             renderSageList();
             renderChatList();
@@ -219,9 +193,8 @@
         }
 
         // ==================== НАСТРОЙКИ ====================
-        const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+        const API_URL = 'https://mudretz.valekmastersaa.workers.dev/groq-proxy';
         const MODEL = 'llama-3.3-70b-versatile';
-        const STORAGE_KEY_API = 'mudrets_groq_key';
         const STORAGE_KEY_CHATS = 'mudrets_chats';
 
         const sages = {
@@ -254,9 +227,6 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
         const newChatBtn = document.getElementById('newChatBtn');
-        const keyModal = document.getElementById('keyModal');
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const saveKeyBtn = document.getElementById('saveKeyBtn');
         const langBtn = document.getElementById('langBtn');
         const langDropdown = document.getElementById('langDropdown');
 
@@ -269,9 +239,6 @@
         }
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
-        function getApiKey() {
-            return localStorage.getItem(STORAGE_KEY_API);
         }
 
         function renderSageList() {
@@ -429,11 +396,6 @@
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
-            const key = getApiKey();
-            if (!key) {
-                keyModal.style.display = 'flex';
-                return;
-            }
             appendMessageToContainer(text, 'user');
             addMessageToCurrentChat(text, 'user', translations[currentLang].you);
             userInput.value = '';
@@ -442,10 +404,7 @@
             try {
                 const resp = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + key
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         model: MODEL,
                         messages: [
@@ -495,19 +454,6 @@
                 applyLanguage(lang);
                 langDropdown.classList.remove('show');
             });
-        });
-
-        if (getApiKey()) {
-            keyModal.style.display = 'none';
-        } else {
-            keyModal.style.display = 'flex';
-        }
-        saveKeyBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (key) {
-                localStorage.setItem(STORAGE_KEY_API, key);
-                keyModal.style.display = 'none';
-            }
         });
 
         // Инициализация
